@@ -1,0 +1,17 @@
+
+# Virtual environments
+.venv/
+venv/
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data (ETL)
+data/raw/
+data/processed/
+data/intermediate/

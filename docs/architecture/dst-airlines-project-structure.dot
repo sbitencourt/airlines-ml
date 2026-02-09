@@ -1,0 +1,199 @@
+digraph DstAirlinesProjectStructure {
+  // ---------- Global graph styling ----------
+  rankdir=TB;
+  labelloc="t";
+  label="DST Airlines — Development Structure (Repository Layout)";
+  fontsize=20;
+  fontname="Helvetica";
+
+  bgcolor="#ffffff";
+  splines=ortho;
+  nodesep=0.35;
+  ranksep=0.55;
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=10,
+    penwidth=1.2
+  ];
+
+  edge [
+    color="#9aa4b2",
+    penwidth=1.0,
+    arrowsize=0.7
+  ];
+
+  // ---------- Root ----------
+  root [
+    label="DST_AIRLINES/\n(repo root)",
+    shape=folder,
+    fontsize=12,
+    fillcolor="#f3f4f6",
+    color="#cbd5e1"
+  ];
+
+  // ---------- Top-level files ----------
+  env_example [label=".env.example", shape=note, fillcolor="#fff7ed", color="#fed7aa"];
+  gitignore  [label=".gitignore", shape=note, fillcolor="#fff7ed", color="#fed7aa"];
+  precommit  [label=".pre-commit-config.yaml", shape=note, fillcolor="#fff7ed", color="#fed7aa"];
+  pyproject  [label="pyproject.toml", shape=note, fillcolor="#fff7ed", color="#fed7aa"];
+
+  // ---------- Clusters ----------
+  subgraph cluster_infra {
+    label="Infrastructure (local / tooling)";
+    fontsize=12;
+    fontname="Helvetica";
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#fafafa";
+
+    venv [label=".venv/\n(local virtual env)\n(gitignored)", shape=folder, fillcolor="#fef2f2", color="#fecaca"];
+    scripts [label="scripts/", shape=folder, fillcolor="#eef2ff", color="#c7d2fe"];
+    render_graphviz [label="render_graphviz.py", shape=note, fillcolor="#ffffff", color="#c7d2fe"];
+
+    scripts -> render_graphviz [color="#6366f1"];
+  }
+
+  subgraph cluster_github {
+    label="GitHub (collaboration / CI)";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#f8fafc";
+
+    github [label=".github/", shape=folder, fillcolor="#ecfeff", color="#a5f3fc"];
+    workflows [label="workflows/", shape=folder, fillcolor="#ecfeff", color="#a5f3fc"];
+    ci [label="ci.yml", shape=note, fillcolor="#ffffff", color="#a5f3fc"];
+    pr_template [label="PULL_REQUEST_TEMPLATE.md", shape=note, fillcolor="#ffffff", color="#a5f3fc"];
+
+    github -> workflows;
+    workflows -> ci;
+    github -> pr_template;
+  }
+
+  subgraph cluster_data {
+    label="Data (directories exist; contents typically gitignored)";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#f9fafb";
+
+    data [label="data/", shape=folder, fillcolor="#fff7ed", color="#fed7aa"];
+    data_raw [label="raw/", shape=folder, fillcolor="#ffffff", color="#fed7aa"];
+    data_intermediate [label="intermediate/", shape=folder, fillcolor="#ffffff", color="#fed7aa"];
+    data_processed [label="processed/", shape=folder, fillcolor="#ffffff", color="#fed7aa"];
+
+    data -> {data_raw data_intermediate data_processed};
+  }
+
+  subgraph cluster_docs {
+    label="Documentation";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#f8fafc";
+
+    docs [label="docs/", shape=folder, fillcolor="#f0fdf4", color="#86efac"];
+    arch [label="architecture/", shape=folder, fillcolor="#f0fdf4", color="#86efac"];
+    arch_readme [label="README.md", shape=note, fillcolor="#ffffff", color="#86efac"];
+    dot_file [label="dst-airlines-project-structure.dot", shape=note, fillcolor="#ffffff", color="#86efac"];
+
+    docs -> arch;
+    arch -> {dot_file arch_readme};
+  }
+
+  subgraph cluster_etl {
+    label="ETL (scripts / orchestration)";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#fdf2f8";
+
+    etl [label="etl/", shape=folder, fillcolor="#fce7f3", color="#f9a8d4"];
+    extract [label="extract/", shape=folder, fillcolor="#ffffff", color="#f9a8d4"];
+    transform [label="transform/", shape=folder, fillcolor="#ffffff", color="#f9a8d4"];
+    load [label="load/", shape=folder, fillcolor="#ffffff", color="#f9a8d4"];
+
+    av_extract [label="aviationstack.py", shape=note, fillcolor="#ffffff", color="#f9a8d4"];
+    ow_extract [label="openweather.py", shape=note, fillcolor="#ffffff", color="#f9a8d4"];
+
+    etl -> {extract transform load};
+    extract -> {av_extract ow_extract};
+  }
+
+  subgraph cluster_src {
+    label="Application Code (reusable package)";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#eff6ff";
+
+    src [label="src/", shape=folder, fillcolor="#dbeafe", color="#93c5fd"];
+    pkg [label="dst_airlines/", shape=folder, fillcolor="#ffffff", color="#93c5fd"];
+
+    clients [label="clients/", shape=folder, fillcolor="#ffffff", color="#93c5fd"];
+    models [label="models/", shape=folder, fillcolor="#ffffff", color="#93c5fd"];
+    utils [label="utils/", shape=folder, fillcolor="#ffffff", color="#93c5fd"];
+    config [label="config.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+
+    // clients
+    clients_init [label="__init__.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+    clients_av [label="aviationstack.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+    clients_ow [label="openweather.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+
+    // models
+    models_init [label="__init__.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+    models_av [label="aviationstack.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+    models_ow [label="openweather.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+
+    // utils
+    utils_init [label="__init__.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+    http [label="http.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+    logging [label="logging.py", shape=note, fillcolor="#ffffff", color="#93c5fd"];
+
+    src -> pkg;
+    pkg -> {clients models utils config};
+
+    clients -> {clients_init clients_av clients_ow};
+    models  -> {models_init models_av models_ow};
+    utils   -> {utils_init http logging};
+  }
+
+  subgraph cluster_tests {
+    label="Tests";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#fefce8";
+
+    tests [label="tests/", shape=folder, fillcolor="#fef9c3", color="#fde047"];
+    test_clients [label="test_clients.py", shape=note, fillcolor="#ffffff", color="#fde047"];
+    test_etl [label="test_etl.py", shape=note, fillcolor="#ffffff", color="#fde047"];
+
+    tests -> {test_clients test_etl};
+  }
+
+  // ---------- Root connections ----------
+  root -> {github docs etl src tests data scripts venv env_example gitignore precommit pyproject};
+
+  // ---------- Legend ----------
+  subgraph cluster_legend {
+    label="Legend";
+    fontsize=12;
+    style="rounded,filled";
+    color="#e5e7eb";
+    fillcolor="#ffffff";
+
+    legend_code [label="Versioned code/docs", shape=box, fillcolor="#eff6ff", color="#93c5fd"];
+    legend_local [label="Local-only (gitignored)\n(e.g., .venv)", shape=box, fillcolor="#fef2f2", color="#fecaca"];
+    legend_data [label="Data dirs exist, contents ignored\n(data/raw, processed, ...)", shape=box, fillcolor="#fff7ed", color="#fed7aa"];
+
+    legend_code -> legend_local [style=invis];
+    legend_local -> legend_data [style=invis];
+  }
+
+  // keep legend at bottom
+  {rank=max; cluster_legend}
+}
