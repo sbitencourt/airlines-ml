@@ -2,8 +2,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 import json
 from collections import Counter
-
 import requests
+from pathlib import Path
+from datetime import datetime
+
 
 from dst_airlines.utils.get_tool_fernet import get_credentials
 
@@ -259,10 +261,6 @@ def print_status_and_sample(status: FetchStatus):
         for f in status.flights_extracted[:3]:
             print(json.dumps(f, indent=2, ensure_ascii=False))
 
-
-from pathlib import Path
-from datetime import datetime
-import json
 
 
 def save_raw_data(data: Any, filename_prefix: str = "dump") -> Path:
