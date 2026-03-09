@@ -1,4 +1,4 @@
-from pathlib import Path
+
 import os
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
