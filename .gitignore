@@ -10,7 +10,7 @@ __pycache__/
 *.egg-info/
 
 # Data
-data/raw/
 data/processed/
 data/interim/
 data/mongodb_data
+data/incoming
