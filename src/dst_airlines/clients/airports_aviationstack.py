@@ -2,7 +2,7 @@ import json
 import requests
 from pathlib import Path
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Import your credential utility
 from dst_airlines.utils.get_tool_fernet import get_credentials
