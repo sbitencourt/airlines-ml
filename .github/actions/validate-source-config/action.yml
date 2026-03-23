@@ -1,0 +1,37 @@
+name: "Validate Source Config"
+description: "Validate required configuration for a data source"
+
+inputs:
+  source-name:
+    description: "Source name"
+    required: true
+  api-url-var:
+    description: "Name of the API URL environment variable"
+    required: true
+  token-var:
+    description: "Name of the token environment variable"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate base environment
+      run: |
+        : "${ENCRYPTION_KEY:?Missing ENCRYPTION_KEY}"
+      shell: bash
+
+    - name: Validate source-specific environment
+      run: |
+        API_URL_VAR="${{ inputs.api-url-var }}"
+        TOKEN_VAR="${{ inputs.token-var }}"
+
+        if [ -z "${!API_URL_VAR}" ]; then
+          echo "Missing ${API_URL_VAR}"
+          exit 1
+        fi
+
+        if [ -z "${!TOKEN_VAR}" ]; then
+          echo "Missing ${TOKEN_VAR}"
+          exit 1
+        fi
+      shell: bash
