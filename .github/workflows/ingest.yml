@@ -1,0 +1,28 @@
+name: Ingest Source Data
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour, adjust as needed
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate source config
+        uses: ./.github/actions/validate-source-config
+
+      - name: Set up Python environment
+        uses: ./.github/actions/setup-python-env
+        with:
+          python-version: '3.11'
+
+      - name: Set up MongoDB
+        uses: ./.github/actions/setup-mongodb
+
+      - name: Ingest source data
+        uses: ./.github/actions/ingest-source
+        with:
+          python-version: '3.11'

@@ -1,0 +1,8 @@
+name: "Docker Build Check"
+description: "Build Docker image to verify correctness"
+
+runs:
+  using: "composite"
+  steps:
+    - run: docker build -t test-image .
+      shell: bash

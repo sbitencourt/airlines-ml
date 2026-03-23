@@ -1,37 +1,21 @@
 name: "Validate Source Config"
-description: "Validate required configuration for a data source"
-
-inputs:
-  source-name:
-    description: "Source name"
-    required: true
-  api-url-var:
-    description: "Name of the API URL environment variable"
-    required: true
-  token-var:
-    description: "Name of the token environment variable"
-    required: true
+description: "Check for required config files and environment variables"
 
 runs:
   using: "composite"
   steps:
-    - name: Validate base environment
+    - name: Check .env file exists
       run: |
-        : "${ENCRYPTION_KEY:?Missing ENCRYPTION_KEY}"
+        if [ ! -f .env ]; then
+          echo ".env file missing!"
+          exit 1
+        fi
       shell: bash
 
-    - name: Validate source-specific environment
+    - name: Check required environment variables
       run: |
-        API_URL_VAR="${{ inputs.api-url-var }}"
-        TOKEN_VAR="${{ inputs.token-var }}"
-
-        if [ -z "${!API_URL_VAR}" ]; then
-          echo "Missing ${API_URL_VAR}"
-          exit 1
-        fi
-
-        if [ -z "${!TOKEN_VAR}" ]; then
-          echo "Missing ${TOKEN_VAR}"
-          exit 1
-        fi
+        source .env
+        : "${ENCRYPTION_KEY:?Missing ENCRYPTION_KEY}"
+        : "${API_URL_AVIONSTACK:?Missing API_URL_AVIONSTACK}"
+        : "${TOKEN_AVIONSTACK:?Missing TOKEN_AVIONSTACK}"
       shell: bash

@@ -1,0 +1,10 @@
+name: "Setup MongoDB"
+description: "Start a MongoDB service for integration tests"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: '6.0'
