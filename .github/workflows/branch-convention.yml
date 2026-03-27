@@ -2,22 +2,38 @@ name: Branch name validation
 
 on:
   pull_request:
-    types: [opened, edited, synchronize]
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
 
 jobs:
-  validate-branch:
+  validate-branch-name:
+    name: Validate branch name
     runs-on: ubuntu-latest
 
     steps:
       - name: Validate branch name
+        shell: bash
         run: |
-          echo "Branch: ${{ github.head_ref }}"
+          set -euo pipefail
 
-          if [[ ! "${{ github.head_ref }}" =~ ^(feat\/(etl|models|api|github-actions)|fix|refactor|test|docs)\/[a-z0-9\-]+$ ]]; then
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Branch: ${BRANCH_NAME}"
+
+          REGEX='^(feat\/(etl|models|api|github-actions)-[a-z0-9-]+|fix\/[a-z0-9-]+|refactor\/[a-z0-9-]+|test\/[a-z0-9-]+|docs\/[a-z0-9-]+)$'
+
+          if [[ ! "${BRANCH_NAME}" =~ ${REGEX} ]]; then
             echo "Invalid branch name."
-            echo "Expected format:"
-            echo "  feat/*, fix/*, refactor/*, test/*, docs/*"
-            echo "Example: feat/api-client"
+            echo "Expected formats:"
+            echo "  feat/etl-*"
+            echo "  feat/models-*"
+            echo "  feat/api-*"
+            echo "  feat/github-actions-*"
+            echo "  fix/*"
+            echo "  refactor/*"
+            echo "  test/*"
+            echo "  docs/*"
             exit 1
           fi
 
