@@ -21,7 +21,7 @@ jobs:
           BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
           echo "Branch: ${BRANCH_NAME}"
 
-          REGEX='^(feat\/(etl|models|api|github-actions)-[a-z0-9-]+|fix\/[a-z0-9-]+|refactor\/[a-z0-9-]+|test\/[a-z0-9-]+|docs\/[a-z0-9-]+)$'
+          REGEX='^(feat\/(etl|models|api|github-actions)-[a-z0-9-]+|fix\/[a-z0-9-]+|refactor\/[a-z0-9-]+|test\/[a-z0-9-]+|docs\/[a-z0-9-]+|chore\/[a-z0-9-]+)$'
 
           if [[ ! "${BRANCH_NAME}" =~ ${REGEX} ]]; then
             echo "Invalid branch name."
@@ -34,6 +34,7 @@ jobs:
             echo "  refactor/*"
             echo "  test/*"
             echo "  docs/*"
+            echo "  chore/*"
             exit 1
           fi
 
