@@ -14,3 +14,6 @@ data/processed/
 data/interim/
 data/mongodb_data
 data/incoming
+
+
+tools/
