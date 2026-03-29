@@ -1,20 +1,35 @@
 name: "Setup Python Environment"
-description: "Install dependencies and prepare Python environment"
+description: "Set up Python and install project dependencies"
 
 inputs:
   python-version:
     description: "Python version to use"
-    required: true
+    required: false
     default: "3.11"
+  requirements-file:
+    description: "Path to requirements file"
+    required: false
+    default: "etl/requirements.txt"
 
 runs:
   using: "composite"
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
+        cache: pip
+        cache-dependency-path: ${{ inputs.requirements-file }}
+
+    - name: Validate requirements file
+      shell: bash
+      run: |
+        if [ ! -f "${{ inputs.requirements-file }}" ]; then
+          echo "Requirements file not found: ${{ inputs.requirements-file }}"
+          exit 1
+        fi
 
     - name: Install dependencies
-      run: pip install -r requirements.txt
       shell: bash
+      run: |
+        pip install -r "${{ inputs.requirements-file }}"

@@ -1,0 +1,48 @@
+name: Docs Architecture
+
+on:
+  pull_request:
+    paths:
+      - "docs/architecture/**"
+      - "scripts/render_graphviz.py"
+  push:
+    branches: [main, master, develop]
+    paths:
+      - "docs/architecture/**"
+      - "scripts/render_graphviz.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-architecture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  graphviz-render:
+    name: Graphviz render check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python environment
+        uses: ./.github/actions/setup-python-env
+        with:
+          python-version: "3.12"
+
+      - name: Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+        shell: bash
+
+      - name: Render architecture PDFs
+        run: python scripts/render_graphviz.py --in-dir docs/architecture --out-dir docs/architecture/rendered
+        shell: bash
+
+      - name: Verify expected artifact
+        run: test -f docs/architecture/rendered/dst-airlines-project-structure.pdf
+        shell: bash

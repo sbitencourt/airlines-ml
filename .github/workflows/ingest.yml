@@ -1,23 +1,50 @@
-name: Ingest Source Data
+name: Manual Aviationstack Ingest
+
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 * * * *'  # Runs every hour, adjust as needed
+    inputs:
+      script-path:
+        description: "Path to the ingestion script"
+        required: true
+        default: "etl/extract/aviationstack.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-ingest-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   ingest:
+    name: Run manual ingest
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Validate source config
         uses: ./.github/actions/validate-source-config
+        with:
+          source-name: "aviationstack"
+          api-url-var: "AVIATIONSTACK_API_URL"
+          credential-var: "AVIATIONSTACK_API_KEY_ENCRYPTED"
+        env:
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          AVIATIONSTACK_API_URL: ${{ vars.AVIATIONSTACK_API_URL }}
+          AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
 
       - name: Set up Python environment
         uses: ./.github/actions/setup-python-env
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          requirements-file: "etl/requirements.txt"
 
       - name: Set up MongoDB
         uses: ./.github/actions/setup-mongodb
@@ -25,4 +52,9 @@ jobs:
       - name: Ingest source data
         uses: ./.github/actions/ingest-source
         with:
-          python-version: '3.11'
+          script-path: ${{ inputs.script-path }}
+        env:
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          AVIATIONSTACK_API_URL: ${{ vars.AVIATIONSTACK_API_URL }}
+          AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

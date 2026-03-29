@@ -2,23 +2,14 @@ name: "Ingest Source Data"
 description: "Extract flight data from Aviationstack and ingest into MongoDB"
 
 inputs:
-  python-version:
-    description: "Python version to use"
+  script-path:
+    description: "Path to the ingestion script"
     required: false
-    default: "3.11"
+    default: "etl/extract/aviationstack.py"
 
 runs:
   using: "composite"
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ inputs.python-version }}
-
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-      shell: bash
-
     - name: Run ingestion script
-      run: python etl/extract/aviationstack.py
+      run: python "${{ inputs.script-path }}"
       shell: bash
