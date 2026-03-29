@@ -9,7 +9,7 @@ inputs:
   requirements-file:
     description: "Path to requirements file"
     required: false
-    default: "requirements.txt"
+    default: "etl/requirements.txt"
 
 runs:
   using: "composite"
@@ -21,6 +21,15 @@ runs:
         cache: pip
         cache-dependency-path: ${{ inputs.requirements-file }}
 
-    - name: Install dependencies
-      run: pip install -r "${{ inputs.requirements-file }}"
+    - name: Validate requirements file
       shell: bash
+      run: |
+        if [ ! -f "${{ inputs.requirements-file }}" ]; then
+          echo "Requirements file not found: ${{ inputs.requirements-file }}"
+          exit 1
+        fi
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        pip install -r "${{ inputs.requirements-file }}"

@@ -44,6 +44,7 @@ jobs:
         uses: ./.github/actions/setup-python-env
         with:
           python-version: "3.11"
+          requirements-file: "etl/requirements.txt"
 
       - name: Set up MongoDB
         uses: ./.github/actions/setup-mongodb
