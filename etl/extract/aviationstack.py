@@ -1,9 +1,15 @@
+<<<<<<< Updated upstream
 from pathlib import Path
 import sys
+=======
+import sys
+from pathlib import Path
+>>>>>>> Stashed changes
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_PATH = PROJECT_ROOT / "src"
 
+<<<<<<< Updated upstream
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
@@ -11,4 +17,12 @@ from dst_airlines.clients.aviationstack import main
 
 
 if __name__ == "__main__":
+=======
+if __name__ == "__main__":
+    if str(SRC_PATH) not in sys.path:
+        sys.path.insert(0, str(SRC_PATH))
+
+    from dst_airlines.clients.aviationstack import main
+
+>>>>>>> Stashed changes
     main()
