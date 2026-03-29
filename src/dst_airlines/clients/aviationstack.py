@@ -5,6 +5,7 @@ from collections import Counter
 import requests
 from pathlib import Path
 from datetime import datetime
+import sys
 
 
 from dst_airlines.utils.get_tool_fernet import get_credentials
@@ -284,21 +285,25 @@ def save_raw_data(data: Any, filename_prefix: str = "dump") -> Path:
     return file_path
 
 
-
-if __name__ == "__main__":
+def main():
     print("Fetching in-air flights...\n")
 
     status = fetch_in_air_flights()
     print_status_and_sample(status)
 
- 
     if status.raw:
         raw_path = save_raw_data(status.raw, filename_prefix="aviationstack_raw")
         print(f"\nRaw payload saved to: {raw_path}")
 
-
     if status.extracted_any:
-        extracted_path = save_raw_data(status.flights_extracted, filename_prefix="in_air_flights")
+        extracted_path = save_raw_data(
+            status.flights_extracted,
+            filename_prefix="in_air_flights"
+        )
         print(f"Extracted in-air flights saved to: {extracted_path}")
     else:
         print("\nNo in-air flights extracted, so no extracted file saved.")
+
+    if not status.api_ok:
+        sys.exit(1)
+
