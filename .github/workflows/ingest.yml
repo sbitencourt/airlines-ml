@@ -2,11 +2,6 @@ name: Manual Aviationstack Ingest
 
 on:
   workflow_dispatch:
-    inputs:
-      script-path:
-        description: "Path to the ingestion script"
-        required: true
-        default: "etl/extract/aviationstack.py"
 
 permissions:
   contents: read
@@ -19,7 +14,7 @@ jobs:
   ingest:
     name: Run manual ingest
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     defaults:
       run:
@@ -49,15 +44,22 @@ jobs:
       - name: Set up MongoDB
         uses: ./.github/actions/setup-mongodb
 
-      - name: Ingest source data
-        uses: ./.github/actions/ingest-source
-        with:
-          script-path: ${{ inputs['script-path'] }}
+      - name: Extract Aviationstack data
+        run: python etl/extract/aviationstack.py
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           API_URL_AVIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIONSTACK_FLIGHTS }}
           AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
+
+      - name: Transform raw to incoming
+        run: python etl/transform/aviationstack_to_incoming.py
+
+      - name: Load incoming data to MongoDB
+        run: python etl/load/to_mongo.py
+        env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ vars.MONGODB_DB }}
+          MONGODB_COLLECTION: ${{ vars.MONGODB_COLLECTION }}
 
       - name: Upload raw data artifact
         if: always()
@@ -65,3 +67,17 @@ jobs:
         with:
           name: aviationstack-raw
           path: data/raw/*.json
+
+      - name: Upload incoming data artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aviationstack-incoming
+          path: data/incoming/*.json
+
+      - name: Upload processed data artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aviationstack-processed
+          path: data/processed/*.json
