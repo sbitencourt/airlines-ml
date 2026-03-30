@@ -4,14 +4,12 @@ import shutil
 from pathlib import Path
 from pymongo import MongoClient, UpdateOne
 
-
 # Path configurations
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
-
 
 
 def extract_records(payload):
@@ -25,16 +23,38 @@ def extract_records(payload):
 
     return []
 
-def sync_airports_to_mongo():
+
+def build_flight_key(item):
+    flight_date = item.get("flight_date")
+
+    flight = item.get("flight") or {}
+    departure = item.get("departure") or {}
+    arrival = item.get("arrival") or {}
+    airline = item.get("airline") or {}
+
+    return {
+        "flight_date": flight_date,
+        "flight_number": flight.get("iata") or flight.get("icao") or flight.get("number"),
+        "departure_iata": departure.get("iata"),
+        "arrival_iata": arrival.get("iata"),
+        "airline_iata": airline.get("iata"),
+    }
+
+
+def is_valid_flight_key(flight_key):
+    return (
+        flight_key.get("flight_date") is not None
+        and flight_key.get("flight_number") is not None
+    )
+
+
+def sync_flights_to_mongo():
     client = MongoClient(MONGODB_URI)
     db = client["dev"]
-    collection = db["raw_airports"]
-
-    # Ensure a unique index on the custom field
-    collection.create_index("airport_id", unique=True)
+    collection = db["raw_flights"]
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-    target_files = list(INCOMING_DIR.glob("airports_processed*.json"))
+    target_files = list(INCOMING_DIR.glob("aviationstack*.json"))
 
     if not target_files:
         print("No files found in data/incoming.")
@@ -43,23 +63,25 @@ def sync_airports_to_mongo():
     for file_path in target_files:
         with open(file_path, "r", encoding="utf-8") as f:
             payload = json.load(f)
-        
+
         data = extract_records(payload)
 
         updates = []
         for item in data:
-            # Extract API 'id' and map it to our internal 'airport_id'
-            api_id = item.get("id")
-            if api_id:
-                item["airport_id"] = api_id  # Explicit mapping
+            flight_key = build_flight_key(item)
 
-                updates.append(
-                    UpdateOne(
-                        {"airport_id": api_id},  # Match using our business key
-                        {"$set": item},
-                        upsert=True
-                    )
+            if not is_valid_flight_key(flight_key):
+                continue
+
+            item.update(flight_key)
+
+            updates.append(
+                UpdateOne(
+                    flight_key,
+                    {"$set": item},
+                    upsert=True
                 )
+            )
 
         if updates:
             result = collection.bulk_write(updates)
@@ -72,5 +94,6 @@ def sync_airports_to_mongo():
 
     client.close()
 
+
 if __name__ == "__main__":
-    sync_airports_to_mongo()
+    sync_flights_to_mongo()
