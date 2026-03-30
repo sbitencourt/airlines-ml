@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from pymongo import MongoClient
 from etl.load.to_mongo import sync_flights_to_mongo
 
