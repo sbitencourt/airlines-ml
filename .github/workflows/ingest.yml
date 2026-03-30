@@ -58,3 +58,10 @@ jobs:
           API_URL_AVIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIONSTACK_FLIGHTS }}
           AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+
+      - name: Upload raw data artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aviationstack-raw
+          path: data/raw/*.json

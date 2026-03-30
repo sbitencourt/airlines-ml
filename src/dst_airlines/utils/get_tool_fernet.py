@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 
-
 load_dotenv()
 
 def _clean(s: str) -> str:
@@ -18,15 +17,21 @@ def _maybe_decrypt(value: str, cipher: Fernet) -> str:
 def get_credentials(limit=100):
     key = os.getenv("ENCRYPTION_KEY")
     if not key:
-        raise RuntimeError("Missing ENCRYPTION_KEY in environment (.env).")
+        raise RuntimeError("Missing ENCRYPTION_KEY in environment.")
 
     cipher = Fernet(_clean(key).encode("utf-8"))
 
     host = os.getenv("API_URL_AVIONSTACK_FLIGHTS")
-    token_enc = os.getenv("TOKEN_AVIONSTACK")
+    token_enc = (
+        os.getenv("AVIATIONSTACK_API_KEY_ENCRYPTED")
+        or os.getenv("TOKEN_AVIONSTACK")
+    )
 
     if not host or not token_enc:
-        raise RuntimeError("Missing API_URL_AVIONSTACK_FLIGHTS/TOKEN_AVIONSTACK in environment (.env).")
+        raise RuntimeError(
+            "Missing API_URL_AVIONSTACK_FLIGHTS and/or AVIATIONSTACK_API_KEY_ENCRYPTED "
+            "(or TOKEN_AVIONSTACK) in environment."
+        )
 
     token = _maybe_decrypt(token_enc, cipher)
 

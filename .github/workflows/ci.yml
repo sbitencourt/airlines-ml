@@ -83,4 +83,5 @@ jobs:
           MONGODB_URI: mongodb://root:passwd@localhost:27017/?authSource=admin
           MONGODB_DB: test_db
           MONGODB_COLLECTION: test_flights
+
         run: python -m pytest -q
