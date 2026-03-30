@@ -41,12 +41,27 @@ jobs:
         shell: bash
 
   tests:
-    name: Unit tests (Python ${{ matrix.python-version }})
+    name: Unit + integration tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: passwd
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })' -u root -p passwd --authenticationDatabase admin"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
       - name: Checkout
@@ -64,6 +79,10 @@ jobs:
 
       - name: Run tests
         shell: bash
+        env:
+          MONGODB_URI: mongodb://root:passwd@localhost:27017/?authSource=admin
+          MONGODB_DB: test_db
+          MONGODB_COLLECTION: test_flights
         run: |
           set +e
           python -m pytest -q
