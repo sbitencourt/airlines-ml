@@ -4,12 +4,26 @@ import shutil
 from pathlib import Path
 from pymongo import MongoClient, UpdateOne
 
+
 # Path configurations
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+
+
+
+def extract_records(payload):
+    if isinstance(payload, list):
+        return payload
+
+    if isinstance(payload, dict):
+        if isinstance(payload.get("data"), list):
+            return payload["data"]
+        return [payload]
+
+    return []
 
 def sync_airports_to_mongo():
     client = MongoClient(MONGODB_URI)
@@ -28,10 +42,9 @@ def sync_airports_to_mongo():
 
     for file_path in target_files:
         with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        if not isinstance(data, list):
-            data = [data]
+            payload = json.load(f)
+        
+        data = extract_records(payload)
 
         updates = []
         for item in data:
