@@ -53,6 +53,18 @@ def sync_flights_to_mongo():
     db = client["dev"]
     collection = db["raw_flights"]
 
+    collection.create_index(
+        [
+            ("flight_date", 1),
+            ("flight_number", 1),
+            ("departure_iata", 1),
+            ("arrival_iata", 1),
+            ("airline_iata", 1),
+        ],
+        unique=True,
+        name="uniq_flight_record",
+    )
+
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     target_files = list(INCOMING_DIR.glob("aviationstack*.json"))
 
