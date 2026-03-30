@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 from pathlib import Path
 from pymongo import MongoClient, UpdateOne
@@ -8,10 +9,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
-MONGO_URI = "mongodb://root:passwd@localhost:27017/"
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
 
 def sync_airports_to_mongo():
-    client = MongoClient(MONGO_URI)
+    client = MongoClient(MONGODB_URI)
     db = client["dev"]
     collection = db["raw_airports"]
 
