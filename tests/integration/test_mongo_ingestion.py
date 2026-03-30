@@ -29,7 +29,7 @@ def test_mongo_ingestion(tmp_path, monkeypatch):
     file_path.write_text(json.dumps(sample), encoding="utf-8")
 
     # Variables de entorno para test
-    monkeypatch.setenv("MONGODB_URI", "mongodb://localhost:27017/")
+    monkeypatch.setenv("MONGODB_URI", "mongodb://root:passwd@localhost:27017/?authSource=admin")
     monkeypatch.setenv("MONGODB_DB", "test_db")
     monkeypatch.setenv("MONGODB_COLLECTION", "test_flights")
 
@@ -41,7 +41,7 @@ def test_mongo_ingestion(tmp_path, monkeypatch):
     sync_flights_to_mongo()
 
     # Verificar en Mongo
-    client = MongoClient("mongodb://localhost:27017/")
+    client = MongoClient("mongodb://root:passwd@localhost:27017/?authSource=admin")
     collection = client["test_db"]["test_flights"]
 
     count = collection.count_documents({})

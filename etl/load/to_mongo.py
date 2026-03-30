@@ -9,10 +9,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
-MONGODB_DB = os.getenv("MONGODB_DB", "dev")
-MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "raw_flights")
-
 
 def extract_records(payload):
     if isinstance(payload, list):
@@ -50,63 +46,70 @@ def is_valid_flight_key(flight_key):
     )
 
 
-def sync_flights_to_mongo():
-    client = MongoClient(MONGODB_URI)
-    db = client[MONGODB_DB]
-    collection = db[MONGODB_COLLECTION]
+def sync_flights_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection=None):
+    mongodb_uri = mongodb_uri or os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+    mongodb_db = mongodb_db or os.getenv("MONGODB_DB", "dev")
+    mongodb_collection = mongodb_collection or os.getenv("MONGODB_COLLECTION", "raw_flights")
 
-    collection.create_index(
-        [
-            ("flight_date", 1),
-            ("flight_number", 1),
-            ("departure_iata", 1),
-            ("arrival_iata", 1),
-            ("airline_iata", 1),
-        ],
-        unique=True,
-        name="uniq_flight_record",
-    )
+    client = MongoClient(mongodb_uri)
 
-    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-    target_files = list(INCOMING_DIR.glob("aviationstack*.json"))
+    try:
+        db = client[mongodb_db]
+        collection = db[mongodb_collection]
 
-    if not target_files:
-        print("No files found in data/incoming.")
-        return
+        collection.create_index(
+            [
+                ("flight_date", 1),
+                ("flight_number", 1),
+                ("departure_iata", 1),
+                ("arrival_iata", 1),
+                ("airline_iata", 1),
+            ],
+            unique=True,
+            name="uniq_flight_record",
+        )
 
-    for file_path in target_files:
-        with open(file_path, "r", encoding="utf-8") as f:
-            payload = json.load(f)
+        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+        target_files = list(INCOMING_DIR.glob("aviationstack*.json"))
 
-        data = extract_records(payload)
+        if not target_files:
+            print("No files found in data/incoming.")
+            return
 
-        updates = []
-        for item in data:
-            flight_key = build_flight_key(item)
+        for file_path in target_files:
+            with open(file_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
 
-            if not is_valid_flight_key(flight_key):
-                continue
+            data = extract_records(payload)
 
-            item.update(flight_key)
+            updates = []
+            for item in data:
+                flight_key = build_flight_key(item)
 
-            updates.append(
-                UpdateOne(
-                    flight_key,
-                    {"$set": item},
-                    upsert=True
+                if not is_valid_flight_key(flight_key):
+                    continue
+
+                item.update(flight_key)
+
+                updates.append(
+                    UpdateOne(
+                        flight_key,
+                        {"$set": item},
+                        upsert=True,
+                    )
                 )
-            )
 
-        if updates:
-            result = collection.bulk_write(updates)
-            print(
-                f"File {file_path.name}: "
-                f"{result.upserted_count} inserted, {result.modified_count} updated."
-            )
+            if updates:
+                result = collection.bulk_write(updates)
+                print(
+                    f"File {file_path.name}: "
+                    f"{result.upserted_count} inserted, {result.modified_count} updated."
+                )
 
-            shutil.move(str(file_path), str(PROCESSED_DIR / file_path.name))
+                shutil.move(str(file_path), str(PROCESSED_DIR / file_path.name))
 
-    client.close()
+    finally:
+        client.close()
 
 
 if __name__ == "__main__":
