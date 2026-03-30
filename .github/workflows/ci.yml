@@ -83,12 +83,4 @@ jobs:
           MONGODB_URI: mongodb://root:passwd@localhost:27017/?authSource=admin
           MONGODB_DB: test_db
           MONGODB_COLLECTION: test_flights
-        run: |
-          set +e
-          python -m pytest -q
-          exit_code=$?
-          if [ "$exit_code" -eq 5 ]; then
-            echo "No tests collected yet; treating as success."
-            exit 0
-          fi
-          exit "$exit_code"
+        run: python -m pytest -q
