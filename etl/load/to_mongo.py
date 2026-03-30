@@ -10,6 +10,8 @@ INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+MONGODB_DB = os.getenv("MONGODB_DB", "dev")
+MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "raw_flights")
 
 
 def extract_records(payload):
@@ -50,8 +52,8 @@ def is_valid_flight_key(flight_key):
 
 def sync_flights_to_mongo():
     client = MongoClient(MONGODB_URI)
-    db = client["dev"]
-    collection = db["raw_flights"]
+    db = client[MONGODB_DB]
+    collection = db[MONGODB_COLLECTION]
 
     collection.create_index(
         [
