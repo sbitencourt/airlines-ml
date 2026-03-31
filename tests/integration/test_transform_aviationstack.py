@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from etl.transform.aviationstack_to_incoming import main
 
 
