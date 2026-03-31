@@ -7,13 +7,8 @@ from pathlib import Path
 from datetime import datetime
 import sys
 
-
 from dst_airlines.utils.get_tool_fernet import get_credentials
 
-
-# ==========================================================
-# Data structure to report detailed fetch status
-# ==========================================================
 
 @dataclass
 class FetchStatus:
@@ -25,12 +20,8 @@ class FetchStatus:
     extracted_any: bool
     error_message: Optional[str] = None
     flights_extracted: Optional[List[Dict[str, Any]]] = None
-    raw: Optional[Dict[str, Any]] = None  # for diagnostics
+    raw: Optional[Dict[str, Any]] = None
 
-
-# ==========================================================
-# Utility helpers
-# ==========================================================
 
 def prune(obj: Any) -> Any:
     """
@@ -72,10 +63,6 @@ def is_in_air(flight: Dict[str, Any]) -> bool:
 
     return flight.get("flight_status") == "active"
 
-
-# ==========================================================
-# Core API calls
-# ==========================================================
 
 def fetch_partial_in_air(timeout: int = 15):
     """
@@ -164,9 +151,7 @@ def fetch_in_air_flights(timeout: int = 15) -> FetchStatus:
                 flights = payload["results"]
 
         if not flights:
-            status.error_message = (
-                'No flights list found (expected "data" or "results").'
-            )
+            status.error_message = 'No flights list found (expected "data" or "results").'
             return status
 
         status.has_flights_array = True
@@ -199,10 +184,6 @@ def fetch_in_air_flights(timeout: int = 15) -> FetchStatus:
         status.error_message = f"Unexpected request error: {e}"
         return status
 
-
-# ==========================================================
-# Diagnostics
-# ==========================================================
 
 def debug_payload(payload: dict) -> None:
     flights = payload.get("data") or payload.get("results") or []
@@ -263,16 +244,12 @@ def print_status_and_sample(status: FetchStatus):
             print(json.dumps(f, indent=2, ensure_ascii=False))
 
 
-
 def save_raw_data(data: Any, filename_prefix: str = "dump") -> Path:
     """
-    Save extracted flights into data/raw directory.
+    Save payload into data/raw directory.
     File name includes timestamp for traceability.
     """
-
-    # Project root = 3 levels above this file
     project_root = Path(__file__).resolve().parents[3]
-
     raw_dir = project_root / "data" / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
@@ -286,24 +263,26 @@ def save_raw_data(data: Any, filename_prefix: str = "dump") -> Path:
 
 
 def main():
-    print("Fetching in-air flights...\n")
+    print("[extract] Fetching in-air flights...\n")
 
     status = fetch_in_air_flights()
     print_status_and_sample(status)
 
-    if status.raw:
-        raw_path = save_raw_data(status.raw, filename_prefix="aviationstack_raw")
-        print(f"\nRaw payload saved to: {raw_path}")
+    if not status.raw:
+        print("[extract] No raw payload received.")
+        sys.exit(1)
 
-    if status.extracted_any:
-        extracted_path = save_raw_data(
-            status.flights_extracted,
-            filename_prefix="in_air_flights"
-        )
-        print(f"Extracted in-air flights saved to: {extracted_path}")
-    else:
-        print("\nNo in-air flights extracted, so no extracted file saved.")
+    raw_flights = status.raw.get("data") or status.raw.get("results") or []
+    extracted_count = len(status.flights_extracted or [])
+
+    raw_path = save_raw_data(status.raw, filename_prefix="aviationstack_raw")
+    print(f"\n[extract] Raw payload saved to: {raw_path}")
+    print(f"[extract] Flights in payload: {len(raw_flights)}")
+    print(f"[extract] In-air flights detected: {extracted_count}")
 
     if not status.api_ok:
         sys.exit(1)
 
+
+if __name__ == "__main__":
+    main()
