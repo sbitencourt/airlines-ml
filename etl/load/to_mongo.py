@@ -1,15 +1,34 @@
 import json
 import os
 import shutil
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
-from pymongo import MongoClient, UpdateOne
 from dotenv import load_dotenv
+from pymongo import MongoClient, UpdateOne
+from pymongo.errors import BulkWriteError, PyMongoError
+
 load_dotenv()
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def log_event(level: str, stage: str, event: str, **kwargs) -> None:
+    payload = {
+        "timestamp": utc_now_iso(),
+        "level": level.upper(),
+        "stage": stage,
+        "event": event,
+        **kwargs,
+    }
+    print(json.dumps(payload, ensure_ascii=False))
 
 
 def extract_records(payload):
@@ -51,11 +70,12 @@ def is_valid_flight_key(flight_key):
 
 
 def sync_flights_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection=None):
+    stage = "load"
+    started_at = time.perf_counter()
+
     mongodb_uri = mongodb_uri or os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
     mongodb_db = mongodb_db or os.getenv("MONGODB_DB", "dev")
     mongodb_collection = mongodb_collection or os.getenv("MONGODB_COLLECTION", "raw_flights")
-
-    client = MongoClient(mongodb_uri)
 
     total_files = 0
     total_records = 0
@@ -63,6 +83,19 @@ def sync_flights_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection=
     total_invalid_records = 0
     total_inserted = 0
     total_updated = 0
+    total_unchanged = 0
+
+    log_event(
+        "INFO",
+        stage,
+        "pipeline_started",
+        incoming_dir=str(INCOMING_DIR),
+        processed_dir=str(PROCESSED_DIR),
+        mongodb_db=mongodb_db,
+        mongodb_collection=mongodb_collection,
+    )
+
+    client = MongoClient(mongodb_uri)
 
     try:
         db = client[mongodb_db]
@@ -88,78 +121,167 @@ def sync_flights_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection=
                 "No files found in data/incoming matching aviationstack_incoming*.json"
             )
 
+        log_event(
+            "INFO",
+            stage,
+            "input_files_discovered",
+            files=len(target_files),
+            pattern="aviationstack_incoming*.json",
+        )
+
         for file_path in target_files:
+            file_started_at = time.perf_counter()
             total_files += 1
 
-            with open(file_path, "r", encoding="utf-8") as f:
-                payload = json.load(f)
-
-            data = extract_records(payload)
-            total_records += len(data)
-
-            updates = []
-            valid_in_file = 0
-            invalid_in_file = 0
-
-            for item in data:
-                if not isinstance(item, dict):
-                    invalid_in_file += 1
-                    continue
-
-                flight_key = build_flight_key(item)
-
-                if not is_valid_flight_key(flight_key):
-                    invalid_in_file += 1
-                    continue
-
-                valid_in_file += 1
-                item.update(flight_key)
-
-                updates.append(
-                    UpdateOne(
-                        flight_key,
-                        {"$set": item},
-                        upsert=True,
-                    )
-                )
-
-            total_valid_records += valid_in_file
-            total_invalid_records += invalid_in_file
-
-            inserted_in_file = 0
-            updated_in_file = 0
-
-            if updates:
-                result = collection.bulk_write(updates)
-                inserted_in_file = result.upserted_count
-                updated_in_file = result.modified_count
-
-                total_inserted += inserted_in_file
-                total_updated += updated_in_file
-
-            print(
-                f"[load] file={file_path.name} "
-                f"records={len(data)} "
-                f"valid={valid_in_file} "
-                f"invalid={invalid_in_file} "
-                f"inserted={inserted_in_file} "
-                f"updated={updated_in_file}"
+            log_event(
+                "INFO",
+                stage,
+                "file_processing_started",
+                file_name=file_path.name,
+                file_path=str(file_path),
             )
 
-            shutil.move(str(file_path), str(PROCESSED_DIR / file_path.name))
-            print(f"[load] moved to processed: {PROCESSED_DIR / file_path.name}")
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    payload = json.load(f)
 
-        print(
-            f"[load] summary files={total_files} "
-            f"records={total_records} "
-            f"valid={total_valid_records} "
-            f"invalid={total_invalid_records} "
-            f"inserted={total_inserted} "
-            f"updated={total_updated}"
+                data = extract_records(payload)
+                total_records += len(data)
+
+                updates = []
+                valid_in_file = 0
+                invalid_in_file = 0
+
+                for item in data:
+                    if not isinstance(item, dict):
+                        invalid_in_file += 1
+                        continue
+
+                    flight_key = build_flight_key(item)
+
+                    if not is_valid_flight_key(flight_key):
+                        invalid_in_file += 1
+                        continue
+
+                    valid_in_file += 1
+                    item.update(flight_key)
+
+                    updates.append(
+                        UpdateOne(
+                            flight_key,
+                            {"$set": item},
+                            upsert=True,
+                        )
+                    )
+
+                total_valid_records += valid_in_file
+                total_invalid_records += invalid_in_file
+
+                inserted_in_file = 0
+                updated_in_file = 0
+                unchanged_in_file = 0
+
+                if updates:
+                    result = collection.bulk_write(updates, ordered=False)
+                    inserted_in_file = result.upserted_count
+                    updated_in_file = result.modified_count
+                    unchanged_in_file = max(result.matched_count - result.modified_count, 0)
+
+                    total_inserted += inserted_in_file
+                    total_updated += updated_in_file
+                    total_unchanged += unchanged_in_file
+
+                destination = PROCESSED_DIR / file_path.name
+                shutil.move(str(file_path), str(destination))
+
+                file_duration_seconds = round(time.perf_counter() - file_started_at, 3)
+
+                log_event(
+                    "INFO",
+                    stage,
+                    "file_processed",
+                    file_name=file_path.name,
+                    records=len(data),
+                    valid=valid_in_file,
+                    invalid=invalid_in_file,
+                    inserted=inserted_in_file,
+                    updated=updated_in_file,
+                    unchanged=unchanged_in_file,
+                    moved_to=str(destination),
+                    duration_seconds=file_duration_seconds,
+                )
+
+            except json.JSONDecodeError as exc:
+                log_event(
+                    "ERROR",
+                    stage,
+                    "file_json_decode_error",
+                    file_name=file_path.name,
+                    error=str(exc),
+                )
+                raise
+
+            except BulkWriteError as exc:
+                log_event(
+                    "ERROR",
+                    stage,
+                    "file_bulk_write_error",
+                    file_name=file_path.name,
+                    details=exc.details,
+                )
+                raise
+
+            except Exception as exc:
+                log_event(
+                    "ERROR",
+                    stage,
+                    "file_processing_failed",
+                    file_name=file_path.name,
+                    error_type=type(exc).__name__,
+                    error=str(exc),
+                )
+                raise
+
+        duration_seconds = round(time.perf_counter() - started_at, 3)
+
+        log_event(
+            "INFO",
+            stage,
+            "pipeline_summary",
+            files=total_files,
+            records=total_records,
+            valid=total_valid_records,
+            invalid=total_invalid_records,
+            inserted=total_inserted,
+            updated=total_updated,
+            unchanged=total_unchanged,
+            errors=0,
+            duration_seconds=duration_seconds,
         )
+
+    except Exception as exc:
+        duration_seconds = round(time.perf_counter() - started_at, 3)
+
+        log_event(
+            "ERROR",
+            stage,
+            "pipeline_failed",
+            error_type=type(exc).__name__,
+            error=str(exc),
+            files=total_files,
+            records=total_records,
+            valid=total_valid_records,
+            invalid=total_invalid_records,
+            inserted=total_inserted,
+            updated=total_updated,
+            unchanged=total_unchanged,
+            duration_seconds=duration_seconds,
+        )
+        raise
 
     finally:
         client.close()
+        log_event("INFO", stage, "mongodb_connection_closed")
 
 
 if __name__ == "__main__":

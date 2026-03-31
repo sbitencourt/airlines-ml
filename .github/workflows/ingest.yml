@@ -20,9 +20,21 @@ jobs:
       run:
         shell: bash
 
+    env:
+      SOURCE_NAME: aviationstack
+      RAW_DIR: data/raw
+      INCOMING_DIR: data/incoming
+      PROCESSED_DIR: data/processed
+      RAW_PATTERN: data/raw/aviationstack_raw*.json
+      INCOMING_PATTERN: data/incoming/aviationstack_incoming*.json
+      PROCESSED_PATTERN: data/processed/aviationstack_incoming*.json
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Record pipeline start time
+        run: echo "PIPELINE_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
 
       - name: Validate source config
         uses: ./.github/actions/validate-source-config
@@ -54,15 +66,16 @@ jobs:
       - name: Verify raw output
         run: |
           shopt -s nullglob
-          files=(data/raw/aviationstack_raw*.json)
+          files=($RAW_PATTERN)
 
           if [ ${#files[@]} -eq 0 ]; then
             echo "[verify-raw] No raw files were generated."
             exit 1
           fi
 
+          echo "RAW_FILE_COUNT=${#files[@]}" >> "$GITHUB_ENV"
           echo "[verify-raw] Raw files found: ${#files[@]}"
-          ls -lah data/raw
+          ls -lah "$RAW_DIR"
 
       - name: Transform raw to incoming
         run: python etl/transform/aviationstack_to_incoming.py
@@ -70,22 +83,23 @@ jobs:
       - name: Verify incoming output
         run: |
           shopt -s nullglob
-          files=(data/incoming/aviationstack_incoming*.json)
+          files=($INCOMING_PATTERN)
 
           if [ ${#files[@]} -eq 0 ]; then
             echo "[verify-incoming] No incoming files were generated."
             exit 1
           fi
 
+          echo "INCOMING_FILE_COUNT=${#files[@]}" >> "$GITHUB_ENV"
           echo "[verify-incoming] Incoming files found: ${#files[@]}"
-          ls -lah data/incoming
+          ls -lah "$INCOMING_DIR"
 
       - name: Upload raw data artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: aviationstack-raw
-          path: data/raw/aviationstack_raw*.json
+          path: ${{ env.RAW_PATTERN }}
           if-no-files-found: warn
 
       - name: Upload incoming data artifact
@@ -93,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aviationstack-incoming
-          path: data/incoming/aviationstack_incoming*.json
+          path: ${{ env.INCOMING_PATTERN }}
           if-no-files-found: warn
 
       - name: Load incoming data to MongoDB
@@ -106,20 +120,45 @@ jobs:
       - name: Verify processed output
         run: |
           shopt -s nullglob
-          files=(data/processed/*.json)
+          files=($PROCESSED_PATTERN)
 
           if [ ${#files[@]} -eq 0 ]; then
             echo "[verify-processed] No processed files were generated."
             exit 1
           fi
 
+          echo "PROCESSED_FILE_COUNT=${#files[@]}" >> "$GITHUB_ENV"
           echo "[verify-processed] Processed files found: ${#files[@]}"
-          ls -lah data/processed
+          ls -lah "$PROCESSED_DIR"
 
       - name: Upload processed data artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: aviationstack-processed
-          path: data/processed/*.json
+          path: ${{ env.PROCESSED_PATTERN }}
           if-no-files-found: warn
+
+      - name: Pipeline summary
+        if: always()
+        run: |
+          ended_at=$(date +%s)
+          started_at=${PIPELINE_STARTED_AT:-$ended_at}
+          duration=$((ended_at - started_at))
+
+          echo "=== PIPELINE SUMMARY ==="
+          echo "source: ${SOURCE_NAME}"
+          echo "raw files: ${RAW_FILE_COUNT:-0}"
+          echo "incoming files: ${INCOMING_FILE_COUNT:-0}"
+          echo "processed files: ${PROCESSED_FILE_COUNT:-0}"
+          echo "duration_seconds: ${duration}"
+
+          {
+            echo "## Pipeline Summary"
+            echo ""
+            echo "- Source: ${SOURCE_NAME}"
+            echo "- Raw files: ${RAW_FILE_COUNT:-0}"
+            echo "- Incoming files: ${INCOMING_FILE_COUNT:-0}"
+            echo "- Processed files: ${PROCESSED_FILE_COUNT:-0}"
+            echo "- Duration (s): ${duration}"
+          } >> "$GITHUB_STEP_SUMMARY"
