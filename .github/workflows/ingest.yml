@@ -50,7 +50,7 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           API_URL_AVIATIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIATIONSTACK_FLIGHTS }}
           AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
-          
+
       - name: Verify raw output
         run: |
           shopt -s nullglob
@@ -99,7 +99,7 @@ jobs:
       - name: Load incoming data to MongoDB
         run: python etl/load/to_mongo.py
         env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_URI: mongodb://localhost:27017
           MONGODB_DB: ${{ vars.MONGODB_DB }}
           MONGODB_COLLECTION: ${{ vars.MONGODB_COLLECTION }}
 
