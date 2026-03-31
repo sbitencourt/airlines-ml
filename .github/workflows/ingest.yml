@@ -28,11 +28,11 @@ jobs:
         uses: ./.github/actions/validate-source-config
         with:
           source-name: "aviationstack"
-          api-url-var: "API_URL_AVIONSTACK_FLIGHTS"
+          api-url-var: "API_URL_AVIATIONSTACK_FLIGHTS"
           credential-var: "AVIATIONSTACK_API_KEY_ENCRYPTED"
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-          API_URL_AVIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIONSTACK_FLIGHTS }}
+          API_URL_AVIATIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIATIONSTACK_FLIGHTS }}
           AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
 
       - name: Set up Python environment
@@ -51,8 +51,50 @@ jobs:
           API_URL_AVIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIONSTACK_FLIGHTS }}
           AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
 
+      - name: Verify raw output
+        run: |
+          shopt -s nullglob
+          files=(data/raw/aviationstack_raw*.json)
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "[verify-raw] No raw files were generated."
+            exit 1
+          fi
+
+          echo "[verify-raw] Raw files found: ${#files[@]}"
+          ls -lah data/raw
+
       - name: Transform raw to incoming
         run: python etl/transform/aviationstack_to_incoming.py
+
+      - name: Verify incoming output
+        run: |
+          shopt -s nullglob
+          files=(data/incoming/aviationstack_incoming*.json)
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "[verify-incoming] No incoming files were generated."
+            exit 1
+          fi
+
+          echo "[verify-incoming] Incoming files found: ${#files[@]}"
+          ls -lah data/incoming
+
+      - name: Upload raw data artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aviationstack-raw
+          path: data/raw/aviationstack_raw*.json
+          if-no-files-found: warn
+
+      - name: Upload incoming data artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aviationstack-incoming
+          path: data/incoming/aviationstack_incoming*.json
+          if-no-files-found: warn
 
       - name: Load incoming data to MongoDB
         run: python etl/load/to_mongo.py
@@ -61,19 +103,18 @@ jobs:
           MONGODB_DB: ${{ vars.MONGODB_DB }}
           MONGODB_COLLECTION: ${{ vars.MONGODB_COLLECTION }}
 
-      - name: Upload raw data artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: aviationstack-raw
-          path: data/raw/*.json
+      - name: Verify processed output
+        run: |
+          shopt -s nullglob
+          files=(data/processed/*.json)
 
-      - name: Upload incoming data artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: aviationstack-incoming
-          path: data/incoming/*.json
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "[verify-processed] No processed files were generated."
+            exit 1
+          fi
+
+          echo "[verify-processed] Processed files found: ${#files[@]}"
+          ls -lah data/processed
 
       - name: Upload processed data artifact
         if: always()
@@ -81,3 +122,4 @@ jobs:
         with:
           name: aviationstack-processed
           path: data/processed/*.json
+          if-no-files-found: warn

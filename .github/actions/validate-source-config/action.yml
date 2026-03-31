@@ -18,23 +18,63 @@ runs:
     - name: Validate base environment
       shell: bash
       run: |
-        : "${ENCRYPTION_KEY:?Missing ENCRYPTION_KEY (required for decryption)}"
+        set -euo pipefail
+
+        if [ -z "${ENCRYPTION_KEY:-}" ]; then
+          echo "[validate-source-config] Missing ENCRYPTION_KEY (required for decryption)."
+          exit 1
+        fi
+
+        echo "[validate-source-config] Base environment OK."
 
     - name: Validate source-specific environment
       shell: bash
       run: |
+        set -euo pipefail
+
         SOURCE_NAME="${{ inputs.source-name }}"
         API_URL_VAR="${{ inputs.api-url-var }}"
         CREDENTIAL_VAR="${{ inputs.credential-var }}"
 
-        if [ -z "${!API_URL_VAR}" ]; then
-          echo "Missing required variable '${API_URL_VAR}' for source '${SOURCE_NAME}'."
+        if [ -z "$SOURCE_NAME" ]; then
+          echo "[validate-source-config] Input 'source-name' is required."
           exit 1
         fi
 
-        if [ -z "${!CREDENTIAL_VAR}" ]; then
-          echo "Missing required variable '${CREDENTIAL_VAR}' for source '${SOURCE_NAME}'."
+        if [ -z "$API_URL_VAR" ]; then
+          echo "[validate-source-config] Input 'api-url-var' is required."
           exit 1
         fi
 
-        echo "Environment validation passed for source '${SOURCE_NAME}'."
+        if [ -z "$CREDENTIAL_VAR" ]; then
+          echo "[validate-source-config] Input 'credential-var' is required."
+          exit 1
+        fi
+
+        API_URL_VALUE="${!API_URL_VAR:-}"
+        CREDENTIAL_VALUE="${!CREDENTIAL_VAR:-}"
+
+        if [ -z "$API_URL_VALUE" ]; then
+          echo "[validate-source-config] Missing required variable '$API_URL_VAR' for source '$SOURCE_NAME'."
+          exit 1
+        fi
+
+        if [ -z "$CREDENTIAL_VALUE" ]; then
+          echo "[validate-source-config] Missing required variable '$CREDENTIAL_VAR' for source '$SOURCE_NAME'."
+          exit 1
+        fi
+
+        if [[ ! "$API_URL_VALUE" =~ ^https?:// ]]; then
+          echo "[validate-source-config] Variable '$API_URL_VAR' must be a valid HTTP/HTTPS URL. Current value: '$API_URL_VALUE'"
+          exit 1
+        fi
+
+        if [[ "$CREDENTIAL_VALUE" =~ ^[[:space:]]*$ ]]; then
+          echo "[validate-source-config] Variable '$CREDENTIAL_VAR' is empty or whitespace only for source '$SOURCE_NAME'."
+          exit 1
+        fi
+
+        echo "[validate-source-config] Source: $SOURCE_NAME"
+        echo "[validate-source-config] API URL variable: $API_URL_VAR"
+        echo "[validate-source-config] Credential variable: $CREDENTIAL_VAR"
+        echo "[validate-source-config] Source-specific environment OK."
