@@ -30,7 +30,7 @@ def get_credentials(limit=100):
     if not host or not token_enc:
         raise RuntimeError(
             "Missing API_URL_AVIATIONSTACK_FLIGHTS and/or AVIATIONSTACK_API_KEY_ENCRYPTED "
-            "(or TOKEN_AVIONSTACK) in environment."
+            "(or TOKEN_AVIATIONSTACK) in environment."
         )
 
     token = _maybe_decrypt(token_enc, cipher)

@@ -48,9 +48,9 @@ jobs:
         run: python etl/extract/aviationstack.py
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-          API_URL_AVIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIONSTACK_FLIGHTS }}
+          API_URL_AVIATIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIATIONSTACK_FLIGHTS }}
           AVIATIONSTACK_API_KEY_ENCRYPTED: ${{ secrets.AVIATIONSTACK_API_KEY_ENCRYPTED }}
-
+          
       - name: Verify raw output
         run: |
           shopt -s nullglob
