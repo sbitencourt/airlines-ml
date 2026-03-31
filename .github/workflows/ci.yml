@@ -71,7 +71,7 @@ jobs:
         uses: ./.github/actions/setup-python-env
         with:
           python-version: ${{ matrix.python-version }}
-          requirements-path: "etl/requirements.txt"
+          requirements-file: "etl/requirements.txt"
 
       - name: Install test tools
         run: pip install pytest

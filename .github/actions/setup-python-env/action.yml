@@ -9,7 +9,7 @@ inputs:
   requirements-file:
     description: "Path to requirements file"
     required: false
-    default: "etl/requirements.txt"
+    default: "./etl/requirements.txt"
 
 runs:
   using: "composite"
