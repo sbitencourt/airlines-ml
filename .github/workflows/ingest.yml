@@ -38,8 +38,8 @@ jobs:
       - name: Set up Python environment
         uses: ./.github/actions/setup-python-env
         with:
-          python-version: "3.11"
-          requirements-path: "etl/requirements.txt"
+          python-version: "3.12"
+          requirements-file: "etl/requirements.txt"
 
       - name: Set up MongoDB
         uses: ./.github/actions/setup-mongodb
