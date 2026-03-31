@@ -1,4 +1,5 @@
 import json
+import pytest
 from etl.transform.aviationstack_to_incoming import main
 
 
@@ -38,7 +39,7 @@ def test_transform_raw_to_incoming(tmp_path, monkeypatch):
     main()
 
     # Verify that a file was created in incoming
-    files = list(incoming_dir.glob("*.json"))
+    files = list(incoming_dir.glob("aviationstack_incoming*.json"))
     assert len(files) == 1
 
     incoming_file = files[0]
@@ -54,3 +55,21 @@ def test_transform_raw_to_incoming(tmp_path, monkeypatch):
     record = data["data"][0]
     assert record["flight_date"] == "2026-02-27"
     assert record["flight"]["iata"] == "VN7091"
+
+
+def test_transform_fails_without_raw(tmp_path, monkeypatch):
+    raw_dir = tmp_path / "data" / "raw"
+    incoming_dir = tmp_path / "data" / "incoming"
+
+    raw_dir.mkdir(parents=True)
+    incoming_dir.mkdir(parents=True)
+
+    monkeypatch.setattr(
+        "etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
+    )
+    monkeypatch.setattr(
+        "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
+    )
+
+    with pytest.raises(FileNotFoundError):
+        main()

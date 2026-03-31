@@ -22,7 +22,7 @@ def test_mongo_ingestion(tmp_path, monkeypatch):
         ]
     }
 
-    file_path = incoming / "aviationstack_test.json"
+    file_path = incoming / "aviationstack_incoming_test.json"
     file_path.write_text(json.dumps(sample), encoding="utf-8")
 
     monkeypatch.setenv(
@@ -55,4 +55,4 @@ def test_mongo_ingestion(tmp_path, monkeypatch):
         client.close()
 
     assert not file_path.exists()
-    assert (processed / "aviationstack_test.json").exists()
+    assert (processed / "aviationstack_incoming_test.json").exists()
