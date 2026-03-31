@@ -7,7 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
-from pymongo.errors import BulkWriteError, PyMongoError
+from pymongo.errors import BulkWriteError
 
 load_dotenv()
 
