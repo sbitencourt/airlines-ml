@@ -1,4 +1,4 @@
-name: Manual Aviationstack Ingest
+name: Manual Aviationstack Flights Ingest
 
 on:
   workflow_dispatch:
@@ -7,12 +7,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: manual-ingest-${{ github.ref }}
+  group: manual-ingest-flights-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   ingest:
-    name: Run manual ingest
+    name: Run manual flights ingest
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -21,7 +21,7 @@ jobs:
         shell: bash
 
     env:
-      SOURCE_NAME: aviationstack
+      SOURCE_NAME: aviationstack_flights
       RAW_DIR: data/raw
       INCOMING_DIR: data/incoming
       PROCESSED_DIR: data/processed
@@ -39,7 +39,7 @@ jobs:
       - name: Validate source config
         uses: ./.github/actions/validate-source-config
         with:
-          source-name: "aviationstack"
+          source-name: "aviationstack_flights"
           api-url-var: "API_URL_AVIATIONSTACK_FLIGHTS"
           credential-var: "AVIATIONSTACK_API_KEY_ENCRYPTED"
         env:
@@ -56,8 +56,8 @@ jobs:
       - name: Set up MongoDB
         uses: ./.github/actions/setup-mongodb
 
-      - name: Extract Aviationstack data
-        run: python etl/extract/aviationstack.py
+      - name: Extract Aviationstack flights data
+        run: python etl/extract/aviationstack_flights.py
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           API_URL_AVIATIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIATIONSTACK_FLIGHTS }}
@@ -98,7 +98,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: aviationstack-raw
+          name: aviationstack-flights-raw
           path: ${{ env.RAW_PATTERN }}
           if-no-files-found: warn
 
@@ -106,16 +106,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: aviationstack-incoming
+          name: aviationstack-flights-incoming
           path: ${{ env.INCOMING_PATTERN }}
           if-no-files-found: warn
 
-      - name: Load incoming data to MongoDB
-        run: python etl/load/to_mongo.py
+      - name: Load incoming flights data to MongoDB
+        run: python etl/load/to_mongo_flights.py
         env:
           MONGODB_URI: mongodb://localhost:27017
           MONGODB_DB: ${{ vars.MONGODB_DB }}
-          MONGODB_COLLECTION: ${{ vars.MONGODB_COLLECTION }}
+          MONGODB_COLLECTION: ${{ vars.MONGODB_COLLECTION_FLIGHTS }}
 
       - name: Verify processed output
         run: |
@@ -135,7 +135,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: aviationstack-processed
+          name: aviationstack-flights-processed
           path: ${{ env.PROCESSED_PATTERN }}
           if-no-files-found: warn
 
