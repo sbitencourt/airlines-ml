@@ -12,8 +12,12 @@ class AviationstackClient(BaseClient):
     access_key: str = ""
 
     @classmethod
-    def from_env(cls, timeout: int = 15) -> "AviationstackClient":
-        host, token, _ = get_credentials()
+    def from_env(
+        cls,
+        api_url_env_var: str = "API_URL_AVIATIONSTACK_FLIGHTS",
+        timeout: int = 15,
+    ) -> "AviationstackClient":
+        host, token, _ = get_credentials(api_url_env_var=api_url_env_var)
         provider_base_url = host.split("/v1/")[0] + "/v1"
         return cls(base_url=provider_base_url, access_key=token, timeout=timeout)
 

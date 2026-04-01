@@ -9,7 +9,7 @@ from dst_airlines.io.raw_writer import save_raw_data
 def main() -> None:
     print("[extract] Fetching aviationstack airports...")
 
-    client = AviationstackClient.from_env()
+    client = AviationstackClient.from_env("API_URL_AVIATIONSTACK_AIRPORTS")
     payloads = client.fetch_airports_raw_all(limit=100, max_pages=1)
 
     raw_path = save_raw_data(
