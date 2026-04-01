@@ -9,10 +9,10 @@ INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 def main():
     INCOMING_DIR.mkdir(parents=True, exist_ok=True)
 
-    raw_files = sorted(RAW_DIR.glob("aviationstack_raw*.json"))
+    raw_files = sorted(RAW_DIR.glob("aviationstack_*_raw_*.json"))
     if not raw_files:
         raise FileNotFoundError(
-            "No raw files found in data/raw matching aviationstack_raw*.json"
+            "No raw files found in data/raw matching aviationstack_*_raw_*.json"
         )
 
     generated = 0
@@ -21,11 +21,7 @@ def main():
         with open(file_path, "r", encoding="utf-8") as f:
             payload = json.load(f)
 
-        target_name = file_path.name.replace(
-            "aviationstack_raw",
-            "aviationstack_incoming",
-            1,
-        )
+        target_name = file_path.name.replace("_raw_", "_incoming_", 1)
         target_path = INCOMING_DIR / target_name
 
         with open(target_path, "w", encoding="utf-8") as f:
