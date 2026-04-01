@@ -4,14 +4,12 @@ from etl.transform.aviationstack_to_incoming import main
 
 
 def test_transform_raw_to_incoming(tmp_path, monkeypatch):
-    # Simulate project-like directory structure
     raw_dir = tmp_path / "data" / "raw"
     incoming_dir = tmp_path / "data" / "incoming"
 
     raw_dir.mkdir(parents=True)
     incoming_dir.mkdir(parents=True)
 
-    # Sample payload (similar to Aviationstack response)
     sample = {
         "data": [
             {
@@ -24,10 +22,9 @@ def test_transform_raw_to_incoming(tmp_path, monkeypatch):
         ]
     }
 
-    raw_file = raw_dir / "aviationstack_raw_test.json"
+    raw_file = raw_dir / "aviationstack_flights_raw_test.json"
     raw_file.write_text(json.dumps(sample), encoding="utf-8")
 
-    # Monkeypatch paths
     monkeypatch.setattr(
         "etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
     )
@@ -35,16 +32,13 @@ def test_transform_raw_to_incoming(tmp_path, monkeypatch):
         "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
     )
 
-    # Run transform
     main()
 
-    # Verify that a file was created in incoming
-    files = list(incoming_dir.glob("aviationstack_incoming*.json"))
+    files = list(incoming_dir.glob("aviationstack_flights_incoming*.json"))
     assert len(files) == 1
 
     incoming_file = files[0]
 
-    # Verify content
     with open(incoming_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -85,7 +79,7 @@ def test_transform_multiple_files(tmp_path, monkeypatch):
     sample = {"data": [{"flight_date": "2026-02-27"}]}
 
     for i in range(2):
-        file = raw_dir / f"aviationstack_raw_test_{i}.json"
+        file = raw_dir / f"aviationstack_flights_raw_test_{i}.json"
         file.write_text(json.dumps(sample), encoding="utf-8")
 
     monkeypatch.setattr(
@@ -97,5 +91,5 @@ def test_transform_multiple_files(tmp_path, monkeypatch):
 
     main()
 
-    files = list(incoming_dir.glob("aviationstack_incoming*.json"))
+    files = list(incoming_dir.glob("aviationstack_flights_incoming*.json"))
     assert len(files) == 2
