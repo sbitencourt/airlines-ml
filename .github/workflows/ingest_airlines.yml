@@ -25,9 +25,9 @@ jobs:
       RAW_DIR: data/raw
       INCOMING_DIR: data/incoming
       PROCESSED_DIR: data/processed
-      RAW_PATTERN: data/raw/aviationstack_raw*.json
-      INCOMING_PATTERN: data/incoming/aviationstack_incoming*.json
-      PROCESSED_PATTERN: data/processed/aviationstack_incoming*.json
+      RAW_PATTERN: data/raw/aviationstack_airlines_raw*.json
+      INCOMING_PATTERN: data/incoming/aviationstack_airlines_incoming*.json
+      PROCESSED_PATTERN: data/processed/aviationstack_airlines_incoming*.json
 
     steps:
       - name: Checkout repository
