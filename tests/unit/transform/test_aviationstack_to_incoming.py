@@ -73,3 +73,29 @@ def test_transform_fails_without_raw(tmp_path, monkeypatch):
 
     with pytest.raises(FileNotFoundError):
         main()
+
+
+def test_transform_multiple_files(tmp_path, monkeypatch):
+    raw_dir = tmp_path / "data" / "raw"
+    incoming_dir = tmp_path / "data" / "incoming"
+
+    raw_dir.mkdir(parents=True)
+    incoming_dir.mkdir(parents=True)
+
+    sample = {"data": [{"flight_date": "2026-02-27"}]}
+
+    for i in range(2):
+        file = raw_dir / f"aviationstack_raw_test_{i}.json"
+        file.write_text(json.dumps(sample), encoding="utf-8")
+
+    monkeypatch.setattr(
+        "etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
+    )
+    monkeypatch.setattr(
+        "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
+    )
+
+    main()
+
+    files = list(incoming_dir.glob("aviationstack_incoming*.json"))
+    assert len(files) == 2

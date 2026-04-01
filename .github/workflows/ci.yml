@@ -18,6 +18,7 @@ jobs:
   lint:
     name: Lint and compile
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -37,12 +38,36 @@ jobs:
         shell: bash
 
       - name: Compile check
-        run: python -m compileall src etl scripts
+        run: python -m compileall src etl scripts tests
         shell: bash
 
-  tests:
-    name: Unit + integration tests (Python ${{ matrix.python-version }})
+  unit-tests:
+    name: Unit tests (Python 3.12)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python environment
+        uses: ./.github/actions/setup-python-env
+        with:
+          python-version: "3.12"
+          requirements-file: "etl/requirements.txt"
+
+      - name: Install test tools
+        run: pip install pytest
+        shell: bash
+
+      - name: Run unit tests
+        run: python -m pytest -q tests/unit
+        shell: bash
+
+  integration-tests:
+    name: Integration tests (Python 3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       mongo:
@@ -58,11 +83,6 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.12"]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,18 +90,17 @@ jobs:
       - name: Setup Python environment
         uses: ./.github/actions/setup-python-env
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           requirements-file: "etl/requirements.txt"
 
       - name: Install test tools
         run: pip install pytest
         shell: bash
 
-      - name: Run tests
+      - name: Run integration tests
         shell: bash
         env:
           MONGODB_URI: mongodb://root:passwd@localhost:27017/?authSource=admin
           MONGODB_DB: test_db
           MONGODB_COLLECTION: test_flights
-
-        run: python -m pytest -q
+        run: python -m pytest -q tests/integration
