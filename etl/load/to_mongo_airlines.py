@@ -63,7 +63,13 @@ def is_valid_airline_key(airline_key):
     )
 
 
-def sync_airlines_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection=None):
+def sync_airlines_to_mongo(
+        source: str = "aviationstack",
+        endpoint: str = "airlines",
+        mongodb_uri=None,
+        mongodb_db=None,
+        mongodb_collection=None,
+    ):
     stage = "load_airlines"
     started_at = time.perf_counter()
 
@@ -106,11 +112,12 @@ def sync_airlines_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection
         )
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-        target_files = sorted(INCOMING_DIR.glob("aviationstack_airlines_incoming_*.json"))
+        pattern = f"{source}_{endpoint}_incoming_*.json"
+        target_files = sorted(INCOMING_DIR.glob(pattern))
 
         if not target_files:
             raise FileNotFoundError(
-                "No files found in data/incoming matching aviationstack_airlines_incoming_*.json"
+                f"No files found in data/incoming matching {pattern}"
             )
 
         log_event(
@@ -118,7 +125,7 @@ def sync_airlines_to_mongo(mongodb_uri=None, mongodb_db=None, mongodb_collection
             stage,
             "input_files_discovered",
             files=len(target_files),
-            pattern="aviationstack_airlines_incoming_*.json",
+            pattern=pattern,
         )
 
         for file_path in target_files:
