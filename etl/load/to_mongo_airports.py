@@ -1,5 +1,4 @@
 import argparse
-from ast import pattern
 import json
 import os
 import shutil
