@@ -32,7 +32,7 @@ def test_transform_raw_to_incoming(tmp_path, monkeypatch):
         "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
     )
 
-    main()
+    main(source="aviationstack", endpoint="flights")
 
     files = list(incoming_dir.glob("aviationstack_flights_incoming*.json"))
     assert len(files) == 1
@@ -66,7 +66,7 @@ def test_transform_fails_without_raw(tmp_path, monkeypatch):
     )
 
     with pytest.raises(FileNotFoundError):
-        main()
+        main(source="aviationstack", endpoint="flights")
 
 
 def test_transform_multiple_files(tmp_path, monkeypatch):
@@ -89,7 +89,7 @@ def test_transform_multiple_files(tmp_path, monkeypatch):
         "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
     )
 
-    main()
+    main(source="aviationstack", endpoint="flights")
 
     files = list(incoming_dir.glob("aviationstack_flights_incoming*.json"))
     assert len(files) == 2

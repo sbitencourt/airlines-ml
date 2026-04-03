@@ -1,4 +1,4 @@
-from etl.load.to_mongo import (
+from etl.load.to_mongo_flights import (
     extract_records,
     build_flight_key,
     is_valid_flight_key,
@@ -66,6 +66,17 @@ def test_build_flight_key_fallback_number():
     key = build_flight_key(item)
 
     assert key["flight_number"] == "7091"
+
+
+def test_build_flight_key_fallback_icao():
+    item = {
+        "flight_date": "2026-02-27",
+        "flight": {"icao": "HVN7091"},
+    }
+
+    key = build_flight_key(item)
+
+    assert key["flight_number"] == "HVN7091"
 
 
 # -------- is_valid_flight_key --------
