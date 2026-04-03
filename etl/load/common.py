@@ -24,7 +24,17 @@ def log_event(level: str, stage: str, event: str, **kwargs) -> None:
     print(json.dumps(payload, ensure_ascii=False))
 
 
-def build_incoming_pattern(source: str, endpoint: str) -> str:
+def build_incoming_pattern(
+    source: str,
+    endpoint: str,
+    run_id: str | None = None,
+) -> str:
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+
+    if run_id:
+        return f"{source}_{endpoint}_incoming_{run_id}.json"
+
     return f"{source}_{endpoint}_incoming_*.json"
 
 

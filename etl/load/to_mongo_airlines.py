@@ -1,4 +1,5 @@
 import argparse
+from ast import pattern
 import json
 import os
 import shutil
@@ -116,7 +117,7 @@ def sync_airlines_to_mongo(
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-        pattern = build_incoming_pattern(source, endpoint)
+        pattern = build_incoming_pattern(source, endpoint, run_id=run_id)
         target_files = sorted(INCOMING_DIR.glob(pattern))
 
         if not target_files:
