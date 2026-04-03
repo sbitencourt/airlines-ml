@@ -1,19 +1,53 @@
-# Environment
+# =========================
+# Environment & Secrets
+# =========================
 .env
 .venv/
 
+# =========================
 # Python
+# =========================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.egg-info/
 
-# Data
-data/processed/
-data/interim/
-data/mongodb_data
-data/incoming
-data/raw
+# =========================
+# Testing & Coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
 
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Data (ETL pipeline)
+# =========================
+data/raw/
+data/incoming/
+data/interim/
+data/processed/
+data/mongodb_data/
+
+# =========================
+# Local Tools / Scripts
+# =========================
 tools/
+
+# =========================
+# Temporary / Debug Files
+# =========================
+src.txt
+structure.txt
+etl.txt
