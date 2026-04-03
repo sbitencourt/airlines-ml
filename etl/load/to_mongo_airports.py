@@ -4,6 +4,9 @@ import shutil
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+import argparse
+from uuid import uuid4
+
 
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
@@ -18,6 +21,11 @@ PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def generate_run_id() -> str:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return f"{timestamp}_{uuid4().hex[:8]}"
 
 
 def log_event(level: str, stage: str, event: str, **kwargs) -> None:
@@ -66,10 +74,12 @@ def is_valid_airport_key(airport_key):
 def sync_airports_to_mongo(
         source: str = "aviationstack",
         endpoint: str = "airports",
+        run_id: str | None = None,
         mongodb_uri=None,
         mongodb_db=None,
         mongodb_collection=None,
     ):
+    run_id = run_id or generate_run_id()
     stage = "load_airports"
     started_at = time.perf_counter()
 
@@ -89,6 +99,9 @@ def sync_airports_to_mongo(
         "INFO",
         stage,
         "pipeline_started",
+        run_id=run_id,
+        source=source,
+        endpoint=endpoint,
         incoming_dir=str(INCOMING_DIR),
         processed_dir=str(PROCESSED_DIR),
         mongodb_db=mongodb_db,
@@ -165,6 +178,13 @@ def sync_airports_to_mongo(
                     valid_in_file += 1
                     item.update(airport_key)
 
+                    item["_meta"] = {
+                        "run_id": run_id,
+                        "source": source,
+                        "endpoint": endpoint,
+                        "loaded_at": utc_now_iso(),
+                    }
+
                     updates.append(
                         UpdateOne(
                             airport_key,
@@ -190,7 +210,7 @@ def sync_airports_to_mongo(
                     total_updated += updated_in_file
                     total_unchanged += unchanged_in_file
 
-                destination = PROCESSED_DIR / file_path.name
+                destination = PROCESSED_DIR / f"{run_id}__{file_path.name}"
                 shutil.move(str(file_path), str(destination))
 
                 file_duration_seconds = round(time.perf_counter() - file_started_at, 3)
@@ -284,4 +304,14 @@ def sync_airports_to_mongo(
 
 
 if __name__ == "__main__":
-    sync_airports_to_mongo()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", required=True)
+    parser.add_argument("--endpoint", required=True)
+    parser.add_argument("--run-id", required=False)
+    args = parser.parse_args()
+
+    sync_airports_to_mongo(
+        source=args.source.strip().lower(),
+        endpoint=args.endpoint.strip().lower(),
+        run_id=args.run_id,
+    )
