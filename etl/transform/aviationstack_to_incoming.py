@@ -7,17 +7,23 @@ RAW_DIR = PROJECT_ROOT / "data" / "raw"
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 
 
-def build_raw_pattern(source: str, endpoint: str) -> str:
+def build_raw_pattern(source: str, endpoint: str, run_id: str | None = None) -> str:
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+
+    if run_id:
+        return f"{source}_{endpoint}_raw_{run_id}.json"
+
     return f"{source}_{endpoint}_raw_*.json"
 
 
-def main(source: str, endpoint: str):
+def main(source: str, endpoint: str, run_id: str | None = None):
     INCOMING_DIR.mkdir(parents=True, exist_ok=True)
 
-    pattern = build_raw_pattern(source, endpoint)
+    pattern = build_raw_pattern(source, endpoint, run_id=run_id)
     raw_files = sorted(RAW_DIR.glob(pattern))
 
-    print(f"[transform] source={source} endpoint={endpoint}")
+    print(f"[transform] source={source} endpoint={endpoint} run_id={run_id}")
     print(f"[transform] searching pattern={pattern}")
 
     if not raw_files:
@@ -26,6 +32,7 @@ def main(source: str, endpoint: str):
         )
 
     generated = 0
+    generated_files: list[str] = []
 
     for file_path in raw_files:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -38,6 +45,7 @@ def main(source: str, endpoint: str):
             json.dump(payload, f, indent=2, ensure_ascii=False)
 
         generated += 1
+        generated_files.append(str(target_path))
         print(f"[transform] generated: {target_path}")
 
     if generated == 0:
@@ -46,6 +54,14 @@ def main(source: str, endpoint: str):
         )
 
     print(f"[transform] total generated files: {generated}")
+
+    return {
+        "source": source,
+        "endpoint": endpoint,
+        "run_id": run_id,
+        "generated_files": generated,
+        "files": generated_files,
+    }
 
 
 if __name__ == "__main__":
@@ -65,9 +81,16 @@ if __name__ == "__main__":
         help="Endpoint name (e.g. flights, airlines, airports)",
     )
 
+    parser.add_argument(
+        "--run-id",
+        required=False,
+        help="Run id to transform only files from the current execution",
+    )
+
     args = parser.parse_args()
 
     main(
         source=args.source.strip().lower(),
         endpoint=args.endpoint.strip().lower(),
+        run_id=args.run_id,
     )
