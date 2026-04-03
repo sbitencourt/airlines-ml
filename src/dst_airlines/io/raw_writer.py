@@ -10,9 +10,22 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 
 
-def build_raw_filename(source: str, endpoint: str, timestamp: str | None = None) -> str:
-    ts = timestamp or datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    return f"{source}_{endpoint}_raw_{ts}.json"
+def utc_now_compact() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+
+
+def build_raw_filename(
+    source: str,
+    endpoint: str,
+    *,
+    run_id: str | None = None,
+    timestamp: str | None = None,
+) -> str:
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+
+    suffix = run_id or timestamp or utc_now_compact()
+    return f"{source}_{endpoint}_raw_{suffix}.json"
 
 
 def save_raw_data(
@@ -20,12 +33,17 @@ def save_raw_data(
     *,
     source: str,
     endpoint: str,
+    run_id: str | None = None,
     raw_dir: Path | None = None,
 ) -> Path:
     target_dir = raw_dir or RAW_DIR
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    file_name = build_raw_filename(source=source, endpoint=endpoint)
+    file_name = build_raw_filename(
+        source=source,
+        endpoint=endpoint,
+        run_id=run_id,
+    )
     file_path = target_dir / file_name
 
     with open(file_path, "w", encoding="utf-8") as file_obj:

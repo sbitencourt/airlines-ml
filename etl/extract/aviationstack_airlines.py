@@ -6,7 +6,7 @@ from dst_airlines.extractors.aviationstack.airlines import (
 from dst_airlines.io.raw_writer import save_raw_data
 
 
-def main() -> None:
+def main(run_id: str | None = None) -> None:
     print("[extract] Fetching aviationstack airlines...")
 
     client = AviationstackClient.from_env("API_URL_AVIATIONSTACK_AIRLINES")
@@ -16,6 +16,7 @@ def main() -> None:
         payloads,
         source="aviationstack",
         endpoint="airlines",
+        run_id=run_id
     )
 
     extracted = extract_airlines(payloads)
