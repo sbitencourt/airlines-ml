@@ -116,8 +116,26 @@ def sync_airports_to_mongo(
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
+        # First try: strict run_id matching
         pattern = build_incoming_pattern(source, endpoint, run_id=run_id)
         target_files = sorted(INCOMING_DIR.glob(pattern))
+
+        # Fallback: allow legacy/test files without run_id
+        if not target_files:
+            fallback_pattern = build_incoming_pattern(source, endpoint, run_id=None)
+            target_files = sorted(INCOMING_DIR.glob(fallback_pattern))
+
+            if target_files:
+                log_event(
+                    "WARNING",
+                    stage,
+                    "fallback_to_legacy_pattern",
+                    run_id=run_id,
+                    source=source,
+                    endpoint=endpoint,
+                    fallback_pattern=fallback_pattern,
+                    files=len(target_files),
+                )
 
         if not target_files:
             raise FileNotFoundError(
