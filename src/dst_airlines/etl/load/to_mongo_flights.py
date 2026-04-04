@@ -3,79 +3,85 @@ import json
 import os
 import shutil
 import time
-from pathlib import Path
+
 
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import BulkWriteError
 
-from etl.load.common import (
+from dst_airlines.config import INCOMING_DIR, PROCESSED_DIR
+
+from dst_airlines.etl.load.metrics import (
+    emit_file_metrics,
+    emit_pipeline_metrics,
+    emit_pipeline_status
+    )
+
+from dst_airlines.etl.load.common import (
     build_document_meta,
     build_incoming_pattern,
     build_processed_destination,
     generate_run_id,
-    log_event,
-)
-from etl.load.metrics import (
-    emit_file_metrics,
-    emit_pipeline_metrics,
-    emit_pipeline_status,
-)
+    log_event
+    )
 
 load_dotenv()
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
-PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 
 def extract_records(payload):
-    records = []
-
     if isinstance(payload, list):
-        for page in payload:
-            if isinstance(page, dict):
-                data = page.get("data") or page.get("results")
-                if isinstance(data, list):
-                    records.extend(data)
-    elif isinstance(payload, dict):
-        data = payload.get("data") or payload.get("results")
-        if isinstance(data, list):
-            records.extend(data)
+        return payload
 
-    return records
+    if isinstance(payload, dict):
+        if isinstance(payload.get("data"), list):
+            return payload["data"]
+        if isinstance(payload.get("results"), list):
+            return payload["results"]
+        return [payload]
+
+    return []
 
 
-def build_airport_key(item):
+def build_flight_key(item):
+    flight_date = item.get("flight_date")
+
+    flight = item.get("flight") or {}
+    departure = item.get("departure") or {}
+    arrival = item.get("arrival") or {}
+    airline = item.get("airline") or {}
+
     return {
-        "airport_iata": item.get("iata_code"),
-        "airport_icao": item.get("icao_code"),
-        "airport_name": item.get("airport_name"),
+        "flight_date": flight_date,
+        "flight_number": flight.get("iata") or flight.get("icao") or flight.get("number"),
+        "departure_iata": departure.get("iata"),
+        "arrival_iata": arrival.get("iata"),
+        "airline_iata": airline.get("iata"),
     }
 
 
-def is_valid_airport_key(airport_key):
-    return any(
-        airport_key.get(field) is not None
-        for field in ("airport_iata", "airport_icao", "airport_name")
+def is_valid_flight_key(flight_key):
+    return (
+        flight_key.get("flight_date") is not None
+        and flight_key.get("flight_number") is not None
     )
 
 
-def sync_airports_to_mongo(
+def sync_flights_to_mongo(
     source: str = "aviationstack",
-    endpoint: str = "airports",
+    endpoint: str = "flights",
     run_id: str | None = None,
     mongodb_uri=None,
     mongodb_db=None,
     mongodb_collection=None,
 ):
     run_id = run_id or generate_run_id()
-    stage = "load_airports"
+    stage = "load_flights"
     started_at = time.perf_counter()
 
     mongodb_uri = mongodb_uri or os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
     mongodb_db = mongodb_db or os.getenv("MONGODB_DB", "dev")
-    mongodb_collection = mongodb_collection or os.getenv("MONGODB_COLLECTION_AIRPORTS", "airports")
+    mongodb_collection = mongodb_collection or os.getenv("MONGODB_COLLECTION_FLIGHTS", "flights")
 
     total_files = 0
     total_records = 0
@@ -106,12 +112,14 @@ def sync_airports_to_mongo(
 
         collection.create_index(
             [
-                ("airport_iata", 1),
-                ("airport_icao", 1),
-                ("airport_name", 1),
+                ("flight_date", 1),
+                ("flight_number", 1),
+                ("departure_iata", 1),
+                ("arrival_iata", 1),
+                ("airline_iata", 1),
             ],
             unique=True,
-            name="uniq_airport_record",
+            name="uniq_flight_record",
         )
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
@@ -184,19 +192,19 @@ def sync_airports_to_mongo(
                         invalid_in_file += 1
                         continue
 
-                    airport_key = build_airport_key(item)
+                    flight_key = build_flight_key(item)
 
-                    if not is_valid_airport_key(airport_key):
+                    if not is_valid_flight_key(flight_key):
                         invalid_in_file += 1
                         continue
 
                     valid_in_file += 1
-                    item.update(airport_key)
+                    item.update(flight_key)
                     item["_meta"] = build_document_meta(run_id, source, endpoint)
 
                     updates.append(
                         UpdateOne(
-                            airport_key,
+                            flight_key,
                             {"$set": item},
                             upsert=True,
                         )
@@ -399,7 +407,7 @@ if __name__ == "__main__":
     parser.add_argument("--run-id", required=False)
     args = parser.parse_args()
 
-    sync_airports_to_mongo(
+    sync_flights_to_mongo(
         source=args.source.strip().lower(),
         endpoint=args.endpoint.strip().lower(),
         run_id=args.run_id,

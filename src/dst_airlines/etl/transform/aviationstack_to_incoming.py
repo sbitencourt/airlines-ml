@@ -2,7 +2,16 @@ from pathlib import Path
 import argparse
 import json
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+def get_project_root() -> Path:
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+    raise RuntimeError("Project root not found")
+
+
+PROJECT_ROOT = get_project_root()
+
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 INCOMING_DIR = PROJECT_ROOT / "data" / "incoming"
 
