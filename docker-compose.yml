@@ -1,16 +1,18 @@
+version: "3.8"
+
 services:
   mongodb:
     image: mongo:7.0
     container_name: mongo-airlines-ml
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root    # set a username
-      MONGO_INITDB_ROOT_PASSWORD: passwd  # set a password
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: passwd
     volumes:
       - ./data/mongodb_data:/data/db
     ports:
       - "27017:27017"
-  
+
   postgres:
     image: postgres:16-alpine
     container_name: postgres-airlines-ml
@@ -18,6 +20,89 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: passwd
-      POSTGRES_DB: flights_db
+      POSTGRES_DB: airflow
     ports:
       - "5432:5432"
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: "test_fernet_key"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
+
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://root:passwd@postgres:5432/airflow
+
+      # 👇 para que vea tu código
+      PYTHONPATH: /opt/airflow/project/src
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./:/opt/airflow/project
+      - ./logs/airflow:/opt/airflow/logs
+
+    ports:
+      - "8080:8080"
+
+    command: webserver
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: "test_fernet_key"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
+
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://root:passwd@postgres:5432/airflow
+
+      PYTHONPATH: /opt/airflow/project/src
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./:/opt/airflow/project
+      - ./logs/airflow:/opt/airflow/logs
+
+    command: scheduler
+
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-init
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://root:passwd@postgres:5432/airflow
+    volumes:
+      - ./:/opt/airflow/project
+    entrypoint: >
+      bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname admin --lastname admin --role Admin --email admin@example.com"
+
+  pushgateway:
+    image: prom/pushgateway
+    ports:
+      - "9091:9091"
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
