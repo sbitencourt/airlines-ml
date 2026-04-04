@@ -1,6 +1,6 @@
 import argparse
 
-from etl.load.common import generate_run_id, log_event
+from dst_airlines.etl.load.common import generate_run_id, log_event
 from dst_airlines.pipelines.registry import get_pipeline
 
 

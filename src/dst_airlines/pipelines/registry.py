@@ -37,7 +37,7 @@ def _run_load_function(
 
 
 def aviationstack_transform(*, source: str, endpoint: str, run_id: str) -> None:
-    from etl.transform.aviationstack_to_incoming import main
+    from dst_airlines.etl.transform.aviationstack_to_incoming import main
 
     main(
         source=source,
@@ -48,28 +48,28 @@ def aviationstack_transform(*, source: str, endpoint: str, run_id: str) -> None:
 
 def aviationstack_flights_extract(*, source: str, endpoint: str, run_id: str) -> None:
     _run_extract_module(
-        "etl.extract.aviationstack_flights",
+        "dst_airlines.etl.extract.aviationstack_flights",
         run_id=run_id,
     )
 
 
 def aviationstack_airlines_extract(*, source: str, endpoint: str, run_id: str) -> None:
     _run_extract_module(
-        "etl.extract.aviationstack_airlines",
+        "dst_airlines.etl.extract.aviationstack_airlines",
         run_id=run_id,
     )
 
 
 def aviationstack_airports_extract(*, source: str, endpoint: str, run_id: str) -> None:
     _run_extract_module(
-        "etl.extract.aviationstack_airports",
+        "dst_airlines.etl.extract.aviationstack_airports",
         run_id=run_id,
     )
 
 
 def aviationstack_flights_load(*, source: str, endpoint: str, run_id: str) -> None:
     _run_load_function(
-        "etl.load.to_mongo_flights",
+        "dst_airlines.etl.load.to_mongo_flights",
         "sync_flights_to_mongo",
         source=source,
         endpoint=endpoint,
@@ -79,7 +79,7 @@ def aviationstack_flights_load(*, source: str, endpoint: str, run_id: str) -> No
 
 def aviationstack_airlines_load(*, source: str, endpoint: str, run_id: str) -> None:
     _run_load_function(
-        "etl.load.to_mongo_airlines",
+        "dst_airlines.etl.load.to_mongo_airlines",
         "sync_airlines_to_mongo",
         source=source,
         endpoint=endpoint,
@@ -89,7 +89,7 @@ def aviationstack_airlines_load(*, source: str, endpoint: str, run_id: str) -> N
 
 def aviationstack_airports_load(*, source: str, endpoint: str, run_id: str) -> None:
     _run_load_function(
-        "etl.load.to_mongo_airports",
+        "dst_airlines.etl.load.to_mongo_airports",
         "sync_airports_to_mongo",
         source=source,
         endpoint=endpoint,
