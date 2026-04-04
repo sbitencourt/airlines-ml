@@ -54,7 +54,7 @@ jobs:
         uses: ./.github/actions/setup-python-env
         with:
           python-version: "3.12"
-          requirements-file: "etl/requirements.txt"
+          requirements-file: "requirements.txt"
 
       - name: Install test tools
         run: pip install pytest
@@ -91,7 +91,7 @@ jobs:
         uses: ./.github/actions/setup-python-env
         with:
           python-version: "3.12"
-          requirements-file: "etl/requirements.txt"
+          requirements-file: "requirements.txt"
 
       - name: Install test tools
         run: pip install pytest
