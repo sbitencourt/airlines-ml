@@ -1,0 +1,4 @@
+requests
+pymongo
+cryptography
+python-dotenv

@@ -45,6 +45,8 @@ data/mongodb_data/
 # =========================
 tools/
 
+build/
+
 # =========================
 # Temporary / Debug Files
 # =========================
