@@ -1,6 +1,6 @@
 import json
 import pytest
-from etl.transform.aviationstack_to_incoming import main
+from dst_airlines.etl.transform.aviationstack_to_incoming import main
 
 
 def test_transform_raw_to_incoming(tmp_path, monkeypatch):

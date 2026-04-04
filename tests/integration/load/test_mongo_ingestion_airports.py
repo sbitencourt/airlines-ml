@@ -1,7 +1,7 @@
 import json
 from pymongo import MongoClient
 
-from etl.load.to_mongo_airports import sync_airports_to_mongo
+from dst_airlines.etl.load.to_mongo_airports import sync_airports_to_mongo
 
 
 

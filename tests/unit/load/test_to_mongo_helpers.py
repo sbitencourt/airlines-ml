@@ -1,4 +1,4 @@
-from etl.load.to_mongo_flights import (
+from dst_airlines.etl.load.to_mongo_flights import (
     extract_records,
     build_flight_key,
     is_valid_flight_key,
