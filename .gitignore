@@ -51,3 +51,9 @@ tools/
 src.txt
 structure.txt
 etl.txt
+
+
+logs/
+airflow/logs/
+
+build/
