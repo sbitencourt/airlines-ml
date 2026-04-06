@@ -26,10 +26,10 @@ def test_transform_raw_to_incoming(tmp_path, monkeypatch):
     raw_file.write_text(json.dumps(sample), encoding="utf-8")
 
     monkeypatch.setattr(
-        "etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
+        "src.dst_airlines.etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
     )
     monkeypatch.setattr(
-        "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
+        "src.dst_airlines.etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
     )
 
     main(source="aviationstack", endpoint="flights")
@@ -59,10 +59,10 @@ def test_transform_fails_without_raw(tmp_path, monkeypatch):
     incoming_dir.mkdir(parents=True)
 
     monkeypatch.setattr(
-        "etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
+        "src.dst_airlines.etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
     )
     monkeypatch.setattr(
-        "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
+        "src.dst_airlines.etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
     )
 
     with pytest.raises(FileNotFoundError):
@@ -83,10 +83,10 @@ def test_transform_multiple_files(tmp_path, monkeypatch):
         file.write_text(json.dumps(sample), encoding="utf-8")
 
     monkeypatch.setattr(
-        "etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
+        "src.dst_airlines.etl.transform.aviationstack_to_incoming.RAW_DIR", raw_dir
     )
     monkeypatch.setattr(
-        "etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
+        "src.dst_airlines.etl.transform.aviationstack_to_incoming.INCOMING_DIR", incoming_dir
     )
 
     main(source="aviationstack", endpoint="flights")

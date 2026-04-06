@@ -26,8 +26,8 @@ def test_mongo_ingestion_airlines(tmp_path, monkeypatch):
 
     run_id = "test_run_airlines"
 
-    monkeypatch.setattr("etl.load.to_mongo_airlines.INCOMING_DIR", incoming)
-    monkeypatch.setattr("etl.load.to_mongo_airlines.PROCESSED_DIR", processed)
+    monkeypatch.setattr("src.dst_airlines.etl.load.to_mongo_airlines.INCOMING_DIR", incoming)
+    monkeypatch.setattr("src.dst_airlines.etl.load.to_mongo_airlines.PROCESSED_DIR", processed)
 
     mongodb_uri = "mongodb://root:passwd@localhost:27017/?authSource=admin"
     mongodb_db = "test_db"

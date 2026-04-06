@@ -5,7 +5,7 @@ inputs:
   script-path:
     description: "Path to the ingestion script"
     required: false
-    default: "etl/extract/aviationstack.py"
+    default: "src/dst_airlines/etl/extract/aviationstack.py"
 
 runs:
   using: "composite"
