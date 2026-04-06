@@ -51,13 +51,13 @@ jobs:
         uses: ./.github/actions/setup-python-env
         with:
           python-version: "3.12"
-          requirements-file: "etl/requirements.txt"
+          requirements-file: "requirements.txt"
 
       - name: Set up MongoDB
         uses: ./.github/actions/setup-mongodb
 
       - name: Extract Aviationstack flights data
-        run: python etl/extract/aviationstack_flights.py
+        run: python src/dst_airlines/etl/extract/aviationstack_flights.py
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           API_URL_AVIATIONSTACK_FLIGHTS: ${{ vars.API_URL_AVIATIONSTACK_FLIGHTS }}
@@ -78,7 +78,7 @@ jobs:
           ls -lah "$RAW_DIR"
 
       - name: Transform raw to incoming
-        run: python etl/transform/aviationstack_to_incoming.py
+        run: python src/dst_airlines/etl/transform/aviationstack_to_incoming.py
 
       - name: Verify incoming output
         run: |
@@ -111,7 +111,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Load incoming flights data to MongoDB
-        run: python etl/load/to_mongo_flights.py
+        run: python src/dst_airlines/etl/load/to_mongo_flights.py
         env:
           MONGODB_URI: mongodb://localhost:27017
           MONGODB_DB: ${{ vars.MONGODB_DB }}

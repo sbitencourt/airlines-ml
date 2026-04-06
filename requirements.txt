@@ -2,3 +2,5 @@ requests
 pymongo
 cryptography
 python-dotenv
+prometheus-client
+apache-airflow
