@@ -4,7 +4,6 @@ import os
 import shutil
 import time
 
-
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import BulkWriteError
@@ -12,21 +11,24 @@ from pymongo.errors import BulkWriteError
 from dst_airlines.config import INCOMING_DIR, PROCESSED_DIR
 
 from dst_airlines.etl.load.metrics import (
+    build_flight_status_metric,
     emit_file_metrics,
     emit_pipeline_metrics,
-    emit_pipeline_status
-    )
+    emit_pipeline_status,
+    push_flight_status_metrics,
+)
+
+from dst_airlines.utils.metrics import delete_metric_group_for_flights
 
 from dst_airlines.etl.load.common import (
     build_document_meta,
     build_incoming_pattern,
     build_processed_destination,
     generate_run_id,
-    log_event
-    )
+    log_event,
+)
 
 load_dotenv()
-
 
 
 def extract_records(payload):
@@ -67,6 +69,25 @@ def is_valid_flight_key(flight_key):
     )
 
 
+def normalize_flight_status(raw_status: str | None) -> str:
+    if not raw_status:
+        return "unknown"
+
+    raw = raw_status.lower()
+
+    mapping = {
+        "scheduled": "scheduled",
+        "active": "cruise",
+        "landed": "arrived",
+        "cancelled": "cancelled",
+        "delayed": "delayed",
+        "incident": "incident",
+        "diverted": "diverted",
+    }
+
+    return mapping.get(raw, raw)
+
+
 def sync_flights_to_mongo(
     source: str = "aviationstack",
     endpoint: str = "flights",
@@ -90,6 +111,8 @@ def sync_flights_to_mongo(
     total_inserted = 0
     total_updated = 0
     total_unchanged = 0
+
+    flight_status_metrics: list[tuple[str, int, dict]] = []
 
     log_event(
         "INFO",
@@ -124,11 +147,9 @@ def sync_flights_to_mongo(
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-        # First try: strict run_id matching
         pattern = build_incoming_pattern(source, endpoint, run_id=run_id)
         target_files = sorted(INCOMING_DIR.glob(pattern))
 
-        # Fallback: allow legacy/test files without run_id
         if not target_files:
             fallback_pattern = build_incoming_pattern(source, endpoint, run_id=None)
             target_files = sorted(INCOMING_DIR.glob(fallback_pattern))
@@ -159,6 +180,20 @@ def sync_flights_to_mongo(
             endpoint=endpoint,
             files=len(target_files),
             pattern=pattern,
+        )
+
+        delete_metric_group_for_flights(
+            source=source,
+            endpoint=endpoint,
+        )
+
+        log_event(
+            "INFO",
+            stage,
+            "flight_snapshot_cleared",
+            run_id=run_id,
+            source=source,
+            endpoint=endpoint,
         )
 
         for file_path in target_files:
@@ -194,9 +229,30 @@ def sync_flights_to_mongo(
 
                     flight_key = build_flight_key(item)
 
+                    flight = item.get("flight") or {}
+                    departure = item.get("departure") or {}
+                    arrival = item.get("arrival") or {}
+                    airline = item.get("airline") or {}
+
+                    flight_number = flight.get("iata") or flight.get("icao") or flight.get("number")
+                    status = normalize_flight_status(item.get("flight_status"))
+
                     if not is_valid_flight_key(flight_key):
                         invalid_in_file += 1
                         continue
+
+                    flight_status_metrics.append(
+                        build_flight_status_metric(
+                            source=source,
+                            endpoint=endpoint,
+                            run_id=run_id,
+                            flight_number=flight_number,
+                            airline_iata=airline.get("iata"),
+                            departure_iata=departure.get("iata"),
+                            arrival_iata=arrival.get("iata"),
+                            status=status,
+                        )
+                    )
 
                     valid_in_file += 1
                     item.update(flight_key)
@@ -311,6 +367,22 @@ def sync_flights_to_mongo(
                     error=str(exc),
                 )
                 raise
+
+        push_flight_status_metrics(
+            source=source,
+            endpoint=endpoint,
+            metrics=flight_status_metrics,
+        )
+
+        log_event(
+            "INFO",
+            stage,
+            "flight_snapshot_pushed",
+            run_id=run_id,
+            source=source,
+            endpoint=endpoint,
+            flights=len(flight_status_metrics),
+        )
 
         duration_seconds = round(time.perf_counter() - started_at, 3)
 
