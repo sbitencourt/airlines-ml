@@ -5,9 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-RAW_DIR = PROJECT_ROOT / "data" / "raw"
+from dst_airlines.config import RAW_DIR
 
 
 def utc_now_compact() -> str:

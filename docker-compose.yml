@@ -31,6 +31,8 @@ services:
     container_name: airflow-webserver
     depends_on:
       - postgres
+    env_file:
+    - .env.docker
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__FERNET_KEY: "test_fernet_key"
@@ -41,6 +43,10 @@ services:
 
       # 👇 para que vea tu código
       PYTHONPATH: /opt/airflow/project/src
+
+      ENV_FILE: /opt/airflow/project/.env.docker
+
+      DST_AIRLINES_HOME: /opt/airflow/project
 
     volumes:
       - ./dags:/opt/airflow/dags
@@ -59,6 +65,8 @@ services:
     container_name: airflow-scheduler
     depends_on:
       - postgres
+    env_file:
+    - .env.docker
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__FERNET_KEY: "test_fernet_key"
@@ -68,6 +76,10 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://root:passwd@postgres:5432/airflow
 
       PYTHONPATH: /opt/airflow/project/src
+
+      ENV_FILE: /opt/airflow/project/.env.docker
+
+      DST_AIRLINES_HOME: /opt/airflow/project
 
     volumes:
       - ./dags:/opt/airflow/dags
@@ -85,6 +97,9 @@ services:
       - postgres
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://root:passwd@postgres:5432/airflow
+
+      DST_AIRLINES_HOME: /opt/airflow/project
+      
     volumes:
       - ./:/opt/airflow/project
     entrypoint: >

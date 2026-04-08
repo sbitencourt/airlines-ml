@@ -28,7 +28,8 @@ from dst_airlines.etl.load.common import (
     log_event,
 )
 
-load_dotenv()
+env_file = os.getenv("ENV_FILE", ".env")
+load_dotenv(env_file)
 
 
 def extract_records(payload):
