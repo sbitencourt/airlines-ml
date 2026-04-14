@@ -181,7 +181,7 @@ Subscribers to paid plans may also use the `search` parameter to retrieve airlin
 
 The **Flight Schedules endpoint** provides real-time timetable information for flights on the current day, including both departures and arrivals.
 
-⚠️ Rate limits:
+Rate limits:
 
 - **Paid plans:** 1 request every 10 seconds  
 - **Free plans:** 1 request every 60 seconds  
