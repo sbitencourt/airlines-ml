@@ -10,16 +10,6 @@ from pymongo.errors import BulkWriteError
 
 from dst_airlines.config import INCOMING_DIR, PROCESSED_DIR
 
-from dst_airlines.etl.load.metrics import (
-    build_flight_status_metric,
-    emit_file_metrics,
-    emit_pipeline_metrics,
-    emit_pipeline_status,
-    push_flight_status_metrics,
-)
-
-from dst_airlines.utils.metrics import delete_metric_group_for_flights
-
 from dst_airlines.etl.load.common import (
     build_document_meta,
     build_incoming_pattern,
@@ -27,6 +17,7 @@ from dst_airlines.etl.load.common import (
     generate_run_id,
     log_event,
 )
+from dst_airlines.etl.load.metrics import emit_pipeline_run_metrics
 
 env_file = os.getenv("ENV_FILE", ".env")
 load_dotenv(env_file)
@@ -70,25 +61,6 @@ def is_valid_flight_key(flight_key):
     )
 
 
-def normalize_flight_status(raw_status: str | None) -> str:
-    if not raw_status:
-        return "unknown"
-
-    raw = raw_status.lower()
-
-    mapping = {
-        "scheduled": "scheduled",
-        "active": "cruise",
-        "landed": "arrived",
-        "cancelled": "cancelled",
-        "delayed": "delayed",
-        "incident": "incident",
-        "diverted": "diverted",
-    }
-
-    return mapping.get(raw, raw)
-
-
 def sync_flights_to_mongo(
     source: str = "aviationstack",
     endpoint: str = "flights",
@@ -98,12 +70,18 @@ def sync_flights_to_mongo(
     mongodb_collection=None,
 ):
     run_id = run_id or generate_run_id()
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+
     stage = "load_flights"
     started_at = time.perf_counter()
 
     mongodb_uri = mongodb_uri or os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
     mongodb_db = mongodb_db or os.getenv("MONGODB_DB", "dev")
-    mongodb_collection = mongodb_collection or os.getenv("MONGODB_COLLECTION_FLIGHTS", "flights")
+    mongodb_collection = mongodb_collection or os.getenv(
+        "MONGODB_COLLECTION_FLIGHTS",
+        "flights",
+    )
 
     total_files = 0
     total_records = 0
@@ -112,8 +90,6 @@ def sync_flights_to_mongo(
     total_inserted = 0
     total_updated = 0
     total_unchanged = 0
-
-    flight_status_metrics: list[tuple[str, int, dict]] = []
 
     log_event(
         "INFO",
@@ -183,20 +159,6 @@ def sync_flights_to_mongo(
             pattern=pattern,
         )
 
-        delete_metric_group_for_flights(
-            source=source,
-            endpoint=endpoint,
-        )
-
-        log_event(
-            "INFO",
-            stage,
-            "flight_snapshot_cleared",
-            run_id=run_id,
-            source=source,
-            endpoint=endpoint,
-        )
-
         for file_path in target_files:
             file_started_at = time.perf_counter()
             total_files += 1
@@ -230,34 +192,18 @@ def sync_flights_to_mongo(
 
                     flight_key = build_flight_key(item)
 
-                    flight = item.get("flight") or {}
-                    departure = item.get("departure") or {}
-                    arrival = item.get("arrival") or {}
-                    airline = item.get("airline") or {}
-
-                    flight_number = flight.get("iata") or flight.get("icao") or flight.get("number")
-                    status = normalize_flight_status(item.get("flight_status"))
-
                     if not is_valid_flight_key(flight_key):
                         invalid_in_file += 1
                         continue
 
-                    flight_status_metrics.append(
-                        build_flight_status_metric(
-                            source=source,
-                            endpoint=endpoint,
-                            run_id=run_id,
-                            flight_number=flight_number,
-                            airline_iata=airline.get("iata"),
-                            departure_iata=departure.get("iata"),
-                            arrival_iata=arrival.get("iata"),
-                            status=status,
-                        )
-                    )
-
                     valid_in_file += 1
+
                     item.update(flight_key)
-                    item["_meta"] = build_document_meta(run_id, source, endpoint)
+                    item["_meta"] = build_document_meta(
+                        run_id=run_id,
+                        source=source,
+                        endpoint=endpoint,
+                    )
 
                     updates.append(
                         UpdateOne(
@@ -276,6 +222,7 @@ def sync_flights_to_mongo(
 
                 if updates:
                     result = collection.bulk_write(updates, ordered=False)
+
                     inserted_in_file = result.upserted_count
                     updated_in_file = result.modified_count
                     unchanged_in_file = max(
@@ -294,7 +241,10 @@ def sync_flights_to_mongo(
                 )
                 shutil.move(str(file_path), str(destination))
 
-                file_duration_seconds = round(time.perf_counter() - file_started_at, 3)
+                file_duration_seconds = round(
+                    time.perf_counter() - file_started_at,
+                    3,
+                )
 
                 log_event(
                     "INFO",
@@ -311,21 +261,6 @@ def sync_flights_to_mongo(
                     updated=updated_in_file,
                     unchanged=unchanged_in_file,
                     moved_to=str(destination),
-                    duration_seconds=file_duration_seconds,
-                )
-
-                emit_file_metrics(
-                    source=source,
-                    endpoint=endpoint,
-                    stage=stage,
-                    run_id=run_id,
-                    file_name=file_path.name,
-                    records=len(data),
-                    valid=valid_in_file,
-                    invalid=invalid_in_file,
-                    inserted=inserted_in_file,
-                    updated=updated_in_file,
-                    unchanged=unchanged_in_file,
                     duration_seconds=file_duration_seconds,
                 )
 
@@ -369,22 +304,6 @@ def sync_flights_to_mongo(
                 )
                 raise
 
-        push_flight_status_metrics(
-            source=source,
-            endpoint=endpoint,
-            metrics=flight_status_metrics,
-        )
-
-        log_event(
-            "INFO",
-            stage,
-            "flight_snapshot_pushed",
-            run_id=run_id,
-            source=source,
-            endpoint=endpoint,
-            flights=len(flight_status_metrics),
-        )
-
         duration_seconds = round(time.perf_counter() - started_at, 3)
 
         log_event(
@@ -405,28 +324,13 @@ def sync_flights_to_mongo(
             duration_seconds=duration_seconds,
         )
 
-        emit_pipeline_metrics(
+        emit_pipeline_run_metrics(
             source=source,
             endpoint=endpoint,
             stage=stage,
-            run_id=run_id,
-            files=total_files,
-            records=total_records,
-            valid=total_valid_records,
-            invalid=total_invalid_records,
-            inserted=total_inserted,
-            updated=total_updated,
-            unchanged=total_unchanged,
-            duration_seconds=duration_seconds,
-        )
-
-        emit_pipeline_status(
-            source=source,
-            endpoint=endpoint,
-            stage=stage,
-            run_id=run_id,
             status="success",
-            value=1,
+            duration_seconds=duration_seconds,
+            records_processed=total_valid_records,
         )
 
     except Exception as exc:
@@ -451,18 +355,20 @@ def sync_flights_to_mongo(
             duration_seconds=duration_seconds,
         )
 
-        emit_pipeline_status(
+        emit_pipeline_run_metrics(
             source=source,
             endpoint=endpoint,
             stage=stage,
-            run_id=run_id,
             status="failed",
-            value=0,
+            duration_seconds=duration_seconds,
+            records_processed=total_valid_records,
         )
+
         raise
 
     finally:
         client.close()
+
         log_event(
             "INFO",
             stage,
@@ -481,7 +387,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     sync_flights_to_mongo(
-        source=args.source.strip().lower(),
-        endpoint=args.endpoint.strip().lower(),
+        source=args.source,
+        endpoint=args.endpoint,
         run_id=args.run_id,
     )

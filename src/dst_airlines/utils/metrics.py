@@ -1,82 +1,121 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-import json
-
-from dst_airlines.utils.prometheus import delete_metrics, push_metric
+from dst_airlines.utils.prometheus import delete_metrics, push_metrics
 
 
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+JOB_NAME = "etl_pipeline"
+
+VALID_STATUSES = {"success", "failed"}
 
 
-def _resolve_push_context(metric_name: str, labels: dict):
-    if metric_name.startswith("etl_dag_"):
-        job = "etl_dag"
-        grouping_key = {
-            "dag_id": str(labels["dag_id"]),
-            "source": str(labels["source"]),
-            "endpoint": str(labels["endpoint"]),
-        }
-        return job, grouping_key
+def emit_pipeline_run_metrics(
+    *,
+    source: str,
+    endpoint: str,
+    stage: str,
+    status: str,
+    duration_seconds: float,
+    records_processed: int | None = None,
+) -> None:
+    """
+    Emit a minimal and stable set of ETL pipeline metrics.
 
-    if metric_name.startswith("etl_flight_"):
-        job = "etl_flight_snapshot"
-        grouping_key = {
-            "source": str(labels["source"]),
-            "endpoint": str(labels["endpoint"]),
-        }
-        return job, grouping_key
+    Metrics:
+    - etl_pipeline_status:
+        Gauge. 1 if the last run for this source/endpoint/stage succeeded,
+        0 if it failed.
 
-    job = "etl_pipeline_run"
-    grouping_key = {
-        "source": str(labels["source"]),
-        "endpoint": str(labels["endpoint"]),
-        "stage": str(labels["stage"]),
-        "run_id": str(labels["run_id"]),
+    - etl_pipeline_duration_seconds:
+        Gauge. Duration of the last run for this source/endpoint/stage.
+
+    - etl_pipeline_records_processed:
+        Gauge. Number of records processed in the last run.
+
+    - etl_pipeline_runs_total:
+        Counter. Total number of runs by source/endpoint/stage/status.
+
+    Labels:
+    - source
+    - endpoint
+    - stage
+    - status only for etl_pipeline_runs_total
+    """
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+    stage = stage.strip().lower()
+    status = status.strip().lower()
+
+    if status not in VALID_STATUSES:
+        raise ValueError(
+            f"Invalid status '{status}'. "
+            f"Expected one of: {', '.join(sorted(VALID_STATUSES))}"
+        )
+
+    base_labels = {
+        "source": source,
+        "endpoint": endpoint,
+        "stage": stage,
     }
-    return job, grouping_key
 
+    metrics = [
+        (
+            "etl_pipeline_status",
+            1 if status == "success" else 0,
+            base_labels,
+        ),
+        (
+            "etl_pipeline_duration_seconds",
+            duration_seconds,
+            base_labels,
+        ),
+        (
+            "etl_pipeline_runs_total",
+            1,
+            {
+                **base_labels,
+                "status": status,
+            },
+        ),
+    ]
 
-def emit_metric(metric_name: str, value, **labels):
-    job, grouping_key = _resolve_push_context(metric_name, labels)
+    if records_processed is not None:
+        metrics.append(
+            (
+                "etl_pipeline_records_processed",
+                records_processed,
+                base_labels,
+            )
+        )
 
-    push_metric(
-        metric_name,
-        value,
-        labels,
-        job=job,
-        grouping_key=grouping_key,
-    )
-
-    payload = {
-        "timestamp": utc_now_iso(),
-        "type": "metric",
-        "metric": metric_name,
-        "value": value,
-        "labels": labels,
-        "pushgateway_job": job,
-        "grouping_key": grouping_key,
-    }
-    print(json.dumps(payload, ensure_ascii=False))
-
-
-def delete_metric_group_for_dag(*, dag_id: str, source: str, endpoint: str) -> None:
-    delete_metrics(
-        job="etl_dag",
+    push_metrics(
+        metrics,
+        job=JOB_NAME,
         grouping_key={
-            "dag_id": dag_id,
             "source": source,
             "endpoint": endpoint,
+            "stage": stage,
         },
     )
 
 
-def delete_metric_group_for_flights(*, source: str, endpoint: str) -> None:
+def delete_pipeline_metrics(
+    *,
+    source: str,
+    endpoint: str,
+    stage: str,
+) -> None:
+    """
+    Delete ETL pipeline metrics for a specific source, endpoint and stage.
+    """
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+    stage = stage.strip().lower()
+
     delete_metrics(
-        job="etl_flight_snapshot",
+        job=JOB_NAME,
         grouping_key={
             "source": source,
             "endpoint": endpoint,
+            "stage": stage,
         },
     )
