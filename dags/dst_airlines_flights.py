@@ -1,12 +1,15 @@
 from datetime import datetime, timedelta
+
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+
 
 default_args = {
     "owner": "alexh",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
 }
+
 
 with DAG(
     dag_id="dst_airlines_flights",
@@ -24,7 +27,6 @@ with DAG(
             "python -m dst_airlines.cli run-etl "
             "--source aviationstack "
             "--endpoint flights "
-            "--dag-id dst_airlines_flights "
-            "--schedule-interval-seconds 300"
+            "--run-id '{{ dag.dag_id }}__{{ ts_nodash }}'"
         ),
     )

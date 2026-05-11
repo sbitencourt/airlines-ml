@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: "DST Airlines"
+    orgId: 1
+    folder: "DST Airlines"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

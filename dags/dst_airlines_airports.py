@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
+
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+
 
 default_args = {
     "owner": "alexh",
@@ -8,10 +10,11 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+
 with DAG(
     dag_id="dst_airlines_airports",
     start_date=datetime(2026, 4, 1),
-    schedule="@daily",
+    schedule="*/5 * * * *",
     catchup=False,
     max_active_runs=1,
     default_args=default_args,
@@ -20,5 +23,10 @@ with DAG(
 
     run_airports = BashOperator(
         task_id="run_airports_etl",
-        bash_command="python -m dst_airlines.cli run-etl --source aviationstack --endpoint airports",
+        bash_command=(
+            "python -m dst_airlines.cli run-etl "
+            "--source aviationstack "
+            "--endpoint airports "
+            "--run-id '{{ dag.dag_id }}__{{ ts_nodash }}'"
+        ),
     )

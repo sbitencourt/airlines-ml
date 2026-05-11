@@ -13,6 +13,13 @@ def _metric_factory(
     metric_name: str,
     labelnames: list[str],
 ):
+    """
+    Create a Prometheus metric.
+
+    Convention:
+    - Metrics ending in '_total' are Counters.
+    - All other metrics are Gauges.
+    """
     if metric_name.endswith("_total"):
         return Counter(
             metric_name,
@@ -20,6 +27,7 @@ def _metric_factory(
             labelnames=labelnames,
             registry=registry,
         )
+
     return Gauge(
         metric_name,
         metric_name,
@@ -34,11 +42,26 @@ def push_metrics(
     job: str,
     grouping_key: dict[str, str] | None = None,
 ) -> None:
+    """
+    Push a group of metrics to Prometheus Pushgateway.
+
+    Each metric must be a tuple with:
+    - metric name
+    - numeric value
+    - labels dictionary
+
+    Example:
+        (
+            "etl_pipeline_duration_seconds",
+            12.5,
+            {"source": "aviationstack", "endpoint": "flights", "stage": "load"},
+        )
+    """
     registry = CollectorRegistry()
     created: dict[tuple[str, tuple[str, ...]], Any] = {}
 
     for metric_name, value, labels in metrics:
-        labelnames = list(labels.keys())
+        labelnames = sorted(labels.keys())
         cache_key = (metric_name, tuple(labelnames))
 
         if cache_key not in created:
@@ -51,8 +74,8 @@ def push_metrics(
         metric = created[cache_key]
 
         normalized_labels = {
-            k: "" if v is None else str(v)
-            for k, v in labels.items()
+            key: "" if labels.get(key) is None else str(labels.get(key))
+            for key in labelnames
         }
 
         if metric_name.endswith("_total"):
@@ -76,6 +99,9 @@ def push_metric(
     job: str,
     grouping_key: dict[str, str] | None = None,
 ) -> None:
+    """
+    Push a single metric to Prometheus Pushgateway.
+    """
     push_metrics(
         [(metric_name, value, labels)],
         job=job,
@@ -88,6 +114,9 @@ def delete_metrics(
     job: str,
     grouping_key: dict[str, str] | None = None,
 ) -> None:
+    """
+    Delete metrics from Prometheus Pushgateway for a job and grouping key.
+    """
     delete_from_gateway(
         PUSHGATEWAY_URL,
         job=job,
