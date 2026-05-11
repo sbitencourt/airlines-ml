@@ -4,10 +4,10 @@ import os
 import shutil
 import time
 
-
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import BulkWriteError
+
 from dst_airlines.config import INCOMING_DIR, PROCESSED_DIR
 
 from dst_airlines.etl.load.common import (
@@ -17,31 +17,36 @@ from dst_airlines.etl.load.common import (
     generate_run_id,
     log_event,
 )
-from dst_airlines.etl.load.metrics import (
-    emit_file_metrics,
-    emit_pipeline_metrics,
-    emit_pipeline_status,
-)
+from dst_airlines.etl.load.metrics import emit_pipeline_run_metrics
 
-load_dotenv()
 
+env_file = os.getenv("ENV_FILE", ".env")
+load_dotenv(env_file)
 
 
 def extract_records(payload):
-    records = []
-
     if isinstance(payload, list):
-        for page in payload:
-            if isinstance(page, dict):
-                data = page.get("data") or page.get("results")
-                if isinstance(data, list):
-                    records.extend(data)
-    elif isinstance(payload, dict):
-        data = payload.get("data") or payload.get("results")
-        if isinstance(data, list):
-            records.extend(data)
+        records = []
 
-    return records
+        for item in payload:
+            if isinstance(item, dict):
+                if isinstance(item.get("data"), list):
+                    records.extend(item["data"])
+                elif isinstance(item.get("results"), list):
+                    records.extend(item["results"])
+                else:
+                    records.append(item)
+
+        return records
+
+    if isinstance(payload, dict):
+        if isinstance(payload.get("data"), list):
+            return payload["data"]
+        if isinstance(payload.get("results"), list):
+            return payload["results"]
+        return [payload]
+
+    return []
 
 
 def build_airline_key(item):
@@ -68,12 +73,18 @@ def sync_airlines_to_mongo(
     mongodb_collection=None,
 ):
     run_id = run_id or generate_run_id()
+    source = source.strip().lower()
+    endpoint = endpoint.strip().lower()
+
     stage = "load_airlines"
     started_at = time.perf_counter()
 
     mongodb_uri = mongodb_uri or os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
     mongodb_db = mongodb_db or os.getenv("MONGODB_DB", "dev")
-    mongodb_collection = mongodb_collection or os.getenv("MONGODB_COLLECTION_AIRLINES", "airlines")
+    mongodb_collection = mongodb_collection or os.getenv(
+        "MONGODB_COLLECTION_AIRLINES",
+        "airlines",
+    )
 
     total_files = 0
     total_records = 0
@@ -114,11 +125,9 @@ def sync_airlines_to_mongo(
 
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-        # First try: strict run_id matching
         pattern = build_incoming_pattern(source, endpoint, run_id=run_id)
         target_files = sorted(INCOMING_DIR.glob(pattern))
 
-        # Fallback: allow legacy/test files without run_id
         if not target_files:
             fallback_pattern = build_incoming_pattern(source, endpoint, run_id=None)
             target_files = sorted(INCOMING_DIR.glob(fallback_pattern))
@@ -189,8 +198,13 @@ def sync_airlines_to_mongo(
                         continue
 
                     valid_in_file += 1
+
                     item.update(airline_key)
-                    item["_meta"] = build_document_meta(run_id, source, endpoint)
+                    item["_meta"] = build_document_meta(
+                        run_id=run_id,
+                        source=source,
+                        endpoint=endpoint,
+                    )
 
                     updates.append(
                         UpdateOne(
@@ -209,6 +223,7 @@ def sync_airlines_to_mongo(
 
                 if updates:
                     result = collection.bulk_write(updates, ordered=False)
+
                     inserted_in_file = result.upserted_count
                     updated_in_file = result.modified_count
                     unchanged_in_file = max(
@@ -227,7 +242,10 @@ def sync_airlines_to_mongo(
                 )
                 shutil.move(str(file_path), str(destination))
 
-                file_duration_seconds = round(time.perf_counter() - file_started_at, 3)
+                file_duration_seconds = round(
+                    time.perf_counter() - file_started_at,
+                    3,
+                )
 
                 log_event(
                     "INFO",
@@ -244,21 +262,6 @@ def sync_airlines_to_mongo(
                     updated=updated_in_file,
                     unchanged=unchanged_in_file,
                     moved_to=str(destination),
-                    duration_seconds=file_duration_seconds,
-                )
-
-                emit_file_metrics(
-                    source=source,
-                    endpoint=endpoint,
-                    stage=stage,
-                    run_id=run_id,
-                    file_name=file_path.name,
-                    records=len(data),
-                    valid=valid_in_file,
-                    invalid=invalid_in_file,
-                    inserted=inserted_in_file,
-                    updated=updated_in_file,
-                    unchanged=unchanged_in_file,
                     duration_seconds=file_duration_seconds,
                 )
 
@@ -322,28 +325,13 @@ def sync_airlines_to_mongo(
             duration_seconds=duration_seconds,
         )
 
-        emit_pipeline_metrics(
+        emit_pipeline_run_metrics(
             source=source,
             endpoint=endpoint,
             stage=stage,
-            run_id=run_id,
-            files=total_files,
-            records=total_records,
-            valid=total_valid_records,
-            invalid=total_invalid_records,
-            inserted=total_inserted,
-            updated=total_updated,
-            unchanged=total_unchanged,
-            duration_seconds=duration_seconds,
-        )
-
-        emit_pipeline_status(
-            source=source,
-            endpoint=endpoint,
-            stage=stage,
-            run_id=run_id,
             status="success",
-            value=1,
+            duration_seconds=duration_seconds,
+            records_processed=total_valid_records,
         )
 
     except Exception as exc:
@@ -368,18 +356,20 @@ def sync_airlines_to_mongo(
             duration_seconds=duration_seconds,
         )
 
-        emit_pipeline_status(
+        emit_pipeline_run_metrics(
             source=source,
             endpoint=endpoint,
             stage=stage,
-            run_id=run_id,
             status="failed",
-            value=0,
+            duration_seconds=duration_seconds,
+            records_processed=total_valid_records,
         )
+
         raise
 
     finally:
         client.close()
+
         log_event(
             "INFO",
             stage,
@@ -398,7 +388,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     sync_airlines_to_mongo(
-        source=args.source.strip().lower(),
-        endpoint=args.endpoint.strip().lower(),
+        source=args.source,
+        endpoint=args.endpoint,
         run_id=args.run_id,
     )

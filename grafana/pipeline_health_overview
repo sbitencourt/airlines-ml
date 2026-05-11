@@ -102,7 +102,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "etl_pipeline_status",
+          "expr": "etl_pipeline_status{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"}",
           "instant": false,
           "legendFormat": "{{endpoint}} / {{stage}}",
           "range": true,
@@ -173,7 +173,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "etl_pipeline_duration_seconds",
+          "expr": "etl_pipeline_duration_seconds{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"}",
           "instant": false,
           "legendFormat": "{{endpoint}} / {{stage}}",
           "range": true,
@@ -236,7 +236,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "etl_pipeline_records_processed",
+          "expr": "etl_pipeline_records_processed{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"}",
           "instant": false,
           "legendFormat": "{{endpoint}} / {{stage}}",
           "range": true,
@@ -299,7 +299,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(etl_pipeline_runs_total)",
+          "expr": "sum(etl_pipeline_runs_total{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"})",
           "instant": false,
           "legendFormat": "runs",
           "range": true,
@@ -375,7 +375,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 * sum(etl_pipeline_runs_total{status=\"failed\"}) / clamp_min(sum(etl_pipeline_runs_total), 1)",
+          "expr": "100 * sum(etl_pipeline_runs_total{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\", status=\"failed\"}) / clamp_min(sum(etl_pipeline_runs_total{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"}), 1)",
           "instant": false,
           "legendFormat": "failure rate",
           "range": true,
@@ -487,7 +487,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "etl_pipeline_duration_seconds",
+          "expr": "etl_pipeline_duration_seconds{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"}",
           "instant": false,
           "legendFormat": "{{endpoint}} / {{stage}}",
           "range": true,
@@ -586,7 +586,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "etl_pipeline_records_processed",
+          "expr": "etl_pipeline_records_processed{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"}",
           "instant": false,
           "legendFormat": "{{endpoint}} / {{stage}}",
           "range": true,
@@ -705,9 +705,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (status) (etl_pipeline_runs_total)",
+          "expr": "sum by (endpoint, stage, status) (etl_pipeline_runs_total{source=~\"$source\", endpoint=~\"$endpoint\", stage=~\"$stage\"})",
           "instant": false,
-          "legendFormat": "{{status}}",
+          "legendFormat": "{{endpoint}} / {{stage}} / {{status}}",
           "range": true,
           "refId": "A"
         }
