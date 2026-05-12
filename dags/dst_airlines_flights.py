@@ -21,7 +21,7 @@ with DAG(
     tags=["dst_airlines", "flights"],
 ) as dag:
 
-    run_flights = BashOperator(
+    run_flights_etl = BashOperator(
         task_id="run_flights_etl",
         bash_command=(
             "python -m dst_airlines.cli run-etl "
@@ -30,3 +30,25 @@ with DAG(
             "--run-id '{{ dag.dag_id }}__{{ ts_nodash }}'"
         ),
     )
+
+    build_flight_snapshot_insights = BashOperator(
+        task_id="build_flight_snapshot_insights",
+        bash_command=(
+            "python -m dst_airlines.etl.insights.flights_snapshot_to_postgres "
+            "--source aviationstack "
+            "--endpoint flights "
+            "--run-id '{{ dag.dag_id }}__{{ ts_nodash }}'"
+        ),
+    )
+
+    build_flight_aircraft_routes = BashOperator(
+        task_id="build_flight_aircraft_routes",
+        bash_command=(
+            "python -m dst_airlines.etl.insights.flight_aircraft_routes_to_postgres "
+            "--source aviationstack "
+            "--endpoint flights "
+            "--run-id '{{ dag.dag_id }}__{{ ts_nodash }}'"
+        ),
+    )
+
+    run_flights_etl >> build_flight_snapshot_insights >> build_flight_aircraft_routes

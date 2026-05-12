@@ -23,6 +23,8 @@ services:
       POSTGRES_DB: airflow
     ports:
       - "5432:5432"
+    volumes:
+      - ./sql/init:/docker-entrypoint-initdb.d
 
   airflow-webserver:
     build:
@@ -126,3 +128,4 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
+      - postgres

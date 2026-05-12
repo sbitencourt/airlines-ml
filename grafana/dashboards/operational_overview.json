@@ -1,0 +1,777 @@
+{
+  "id": null,
+  "uid": "flight-operational-overview",
+  "title": "Flight Operations Command Center",
+  "tags": [
+    "dst_airlines",
+    "flights",
+    "operational",
+    "clean-ui",
+    "operations"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 42,
+  "version": 3,
+  "refresh": "1m",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Observed flights",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-flight-insights"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  snapshot_at AS time,\n  observed_flights_total\nFROM flight_snapshot_insights\nORDER BY snapshot_at DESC\nLIMIT 1;"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "displayName": "Observed",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 100,
+            "spanNulls": false
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "transparent": false,
+      "pluginVersion": "11.0.0",
+      "description": "Latest snapshot: observed flights"
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active flights",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-flight-insights"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  snapshot_at AS time,\n  observed_flights_active\nFROM flight_snapshot_insights\nORDER BY snapshot_at DESC\nLIMIT 1;"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "displayName": "Active",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 100,
+            "spanNulls": false
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "transparent": false,
+      "pluginVersion": "11.0.0",
+      "description": "Latest snapshot: active flights"
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Delayed flights",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-flight-insights"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  snapshot_at AS time,\n  observed_delayed_flights_total\nFROM flight_snapshot_insights\nORDER BY snapshot_at DESC\nLIMIT 1;"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          },
+          "displayName": "Delayed",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 100,
+            "spanNulls": false
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "transparent": false,
+      "pluginVersion": "11.0.0",
+      "description": "Latest snapshot: delayed flights"
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Route records",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-flight-insights"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  COUNT(*) AS total_routes\nFROM flight_aircraft_routes\nWHERE run_id = (\n  SELECT run_id\n  FROM flight_aircraft_routes\n  ORDER BY id DESC\n  LIMIT 1\n);"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          },
+          "displayName": "Routes",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 100,
+            "spanNulls": false
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "transparent": false,
+      "pluginVersion": "11.0.0",
+      "description": "Latest snapshot: route records"
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Latest aircraft routes",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-flight-insights"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  flight_date::text AS flight_date,\n  run_id,\n  aircraft_icao24,\n  airline_iata,\n  flight_iata,\n  departure_iata,\n  departure_region,\n  arrival_iata,\n  arrival_region,\n  flight_status\nFROM flight_aircraft_routes\nWHERE run_id = (\n  SELECT run_id\n  FROM flight_aircraft_routes\n  ORDER BY id DESC\n  LIMIT 1\n)\nORDER BY departure_scheduled ASC, flight_iata ASC\nLIMIT 100;"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": [
+            "count"
+          ],
+          "countRows": true,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Flight date",
+            "desc": false
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "flight_date"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Flight date"
+              },
+              {
+                "id": "custom.width",
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "run_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Run"
+              },
+              {
+                "id": "custom.width",
+                "value": 82
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "aircraft_icao24"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Aircraft"
+              },
+              {
+                "id": "custom.width",
+                "value": 105
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "airline_iata"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Airline"
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "flight_iata"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Flight"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "departure_iata"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "From"
+              },
+              {
+                "id": "custom.width",
+                "value": 68
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "departure_region"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Origin region"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "arrival_iata"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "To"
+              },
+              {
+                "id": "custom.width",
+                "value": 68
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "arrival_region"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Destination region"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "flight_status"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "flight_status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "active": {
+                        "text": "Active",
+                        "color": "green"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "scheduled": {
+                        "text": "Scheduled",
+                        "color": "blue"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "landed": {
+                        "text": "Landed",
+                        "color": "purple"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "cancelled": {
+                        "text": "Cancelled",
+                        "color": "red"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "delayed": {
+                        "text": "Delayed",
+                        "color": "orange"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "transparent": false,
+      "pluginVersion": "11.0.0",
+      "description": "Latest run sample with compact, readable columns"
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Top origin to destination regions",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres-flight-insights"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  departure_region || ' → ' || arrival_region AS route_region,\n  COUNT(*) AS flights\nFROM flight_aircraft_routes\nWHERE run_id = (\n  SELECT run_id\n  FROM flight_aircraft_routes\n  ORDER BY id DESC\n  LIMIT 1\n)\n  AND departure_region IS NOT NULL\n  AND arrival_region IS NOT NULL\nGROUP BY 1\nORDER BY flights DESC\nLIMIT 20;"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "route_region",
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.58,
+        "barWidth": 0.72,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "custom": {
+            "fillOpacity": 55,
+            "lineWidth": 1,
+            "axisPlacement": "auto",
+            "axisLabel": "Flights",
+            "axisColorMode": "text",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "axisGridShow": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "displayName": "Flights"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "route_region"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Route"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "flights"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Flights"
+              }
+            ]
+          }
+        ]
+      },
+      "transparent": false,
+      "pluginVersion": "11.0.0",
+      "description": "Latest run, sorted by flight volume"
+    }
+  ],
+  "links": [],
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "preload": false,
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d"
+    ]
+  },
+  "weekStart": ""
+}

@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL - Flight Insights
+    uid: postgres-flight-insights
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    user: root
+    secureJsonData:
+      password: passwd
+    jsonData:
+      database: dst_airlines
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false
