@@ -1,0 +1,464 @@
+]633;D;127]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;docker-compose exec airflow-webserver python -m dst_airlines.cli run-etl --source aviationstack --endpoint flights;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C]633;D;1]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;pip install distutils;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C]633;D;1]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;pip install prometheus_client;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CCollecting prometheus_client
+  Downloading prometheus_client-0.24.1-py3-none-any.whl.metadata (2.1 kB)
+Downloading prometheus_client-0.24.1-py3-none-any.whl (64 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.1/64.1 kB 1.8 MB/s eta 0:00:00
+Installing collected packages: prometheus_client
+Successfully installed prometheus_client-0.24.1
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;pip install prometheus-client;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CRequirement already satisfied: prometheus-client in ./.venv/lib/python3.12/site-packages (0.24.1)
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;docker-compose exec airflow-webserver python -m dst_airlines.cli run-etl --source aviationstack --endpoint flights;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C]633;D;1]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;sudo apt-get update;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CObter:1 https://packages.microsoft.com/repos/code stable InRelease [3.590 B]
+Obter:2 https://packages.microsoft.com/repos/code stable/main amd64 Packages [25,4 kB]
+Atingido:3 https://ngrok-agent.s3.amazonaws.com bookworm InRelease
+Atingido:5 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Obter:6 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Obter:7 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Obter:8 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [177 kB]
+Obter:9 http://br.archive.ubuntu.com/ubuntu noble-updates/main amd64 c-n-f Metadata [16,9 kB]
+Obter:10 http://br.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Components [212 B]
+Obter:11 http://br.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [386 kB]
+Obter:12 http://br.archive.ubuntu.com/ubuntu noble-updates/universe amd64 c-n-f Metadata [34,2 kB]
+Obter:13 http://br.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+Obter:14 http://br.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [7.380 B]
+Obter:15 http://br.archive.ubuntu.com/ubuntu noble-backports/restricted amd64 Components [216 B]
+Obter:16 http://br.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [13,2 kB]
+Obter:17 http://br.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Components [212 B]
+Obter:18 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Obter:19 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1.578 kB]
+Obter:20 http://security.ubuntu.com/ubuntu noble-security/main i386 Packages [399 kB]
+Obter:21 http://security.ubuntu.com/ubuntu noble-security/main amd64 Components [21,5 kB]
+Obter:22 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Components [212 B]
+Obter:23 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1.167 kB]
+Atingido:24 https://ppa.launchpadcontent.net/linrunner/tlp/ubuntu noble InRelease
+Obter:25 http://security.ubuntu.com/ubuntu noble-security/universe i386 Packages [788 kB]
+Obter:26 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Components [74,2 kB]
+Obter:27 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Components [212 B]
+Atingido:28 http://dell.archive.canonical.com noble InRelease
+Atingido:4 https://nbg1.your-objectstorage.com/qgis-download/debian-ltr noble InRelease
+Baixados 5.072 kB em 10s (529 kB/s)
+Lendo listas de pacotes...
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;sudo apt-get install docker-ce docker-ce-cli containerd.io;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CLendo listas de pacotes...
+Construindo árvore de dependências...
+Lendo informação de estado...
+docker-ce já é a versão mais nova (5:28.4.0-1~ubuntu.22.04~jammy).
+docker-ce-cli já é a versão mais nova (5:28.4.0-1~ubuntu.22.04~jammy).
+containerd.io já é a versão mais nova (1.7.27-1).
+Os seguintes pacotes foram instalados automaticamente e já não são necessários:
+  acpi-support acpid aisleriot android-libcrypto-utils android-libext4-utils
+  android-libunwind apturl apturl-common attr branding-ubuntu cheese
+  cheese-common dctrl-tools endeavour endeavour-common fonts-kacst
+  fonts-kacst-one fonts-khmeros-core fonts-lao fonts-liberation2
+  fonts-lklug-sinhala fonts-sil-abyssinica fonts-sil-padauk fonts-thai-tlwg
+  fonts-tibetan-machine fonts-tlwg-garuda fonts-tlwg-garuda-ttf
+  fonts-tlwg-kinnari fonts-tlwg-kinnari-ttf fonts-tlwg-laksaman
+  fonts-tlwg-laksaman-ttf fonts-tlwg-loma fonts-tlwg-loma-ttf fonts-tlwg-mono
+  fonts-tlwg-mono-ttf fonts-tlwg-norasi fonts-tlwg-norasi-ttf
+  fonts-tlwg-purisa fonts-tlwg-purisa-ttf fonts-tlwg-sawasdee
+  fonts-tlwg-sawasdee-ttf fonts-tlwg-typewriter fonts-tlwg-typewriter-ttf
+  fonts-tlwg-typist fonts-tlwg-typist-ttf fonts-tlwg-typo fonts-tlwg-typo-ttf
+  fonts-tlwg-umpush fonts-tlwg-umpush-ttf fonts-tlwg-waree
+  fonts-tlwg-waree-ttf gedit gedit-common genisoimage gimp-data gir1.2-amtk-5
+  gir1.2-gck-1 gir1.2-gcr-3 gir1.2-goa-1.0 gir1.2-gtksource-300
+  gir1.2-gtksource-4 gir1.2-gweather-3.0 gir1.2-javascriptcoregtk-4.0
+  gir1.2-json-1.0 gir1.2-nma-1.0 gir1.2-snapd-1 gir1.2-soup-2.4 gir1.2-tepl-6
+  gir1.2-webkit2-4.0 gnome-bluetooth gnome-bluetooth-common gnome-mahjongg
+  gnome-mines gnome-sudoku gnome-todo gnome-video-effects graphviz
+  gstreamer1.0-clutter-3.0 guile-2.2-libs guile-3.0-libs irqbalance
+  libabsl20210324 libamd2 libann0 libappstream4 libatk1.0-data libavcodec58
+  libavfilter7 libavformat58 libavutil56 libbabl-0.1-0 libblockdev-crypto2
+  libblockdev-fs2 libblockdev-loop2 libblockdev-part-err2 libblockdev-part2
+  libblockdev-swap2 libblockdev-utils2 libblockdev2 libboost-filesystem1.74.0
+  libboost-iostreams1.74.0 libboost-locale1.74.0 libboost-regex1.74.0
+  libboost-thread1.74.0 libbpf0 libcamd2 libcamel-1.2-63 libcbor0.8
+  libccolamd2 libcdt5 libcephfs2 libcgraph6 libcheese-gtk25 libcheese8
+  libcholmod3 libclang-cpp14t64 libclutter-1.0-0 libclutter-1.0-common
+  libclutter-gst-3.0-0 libclutter-gtk-1.0-0 libcodec2-1.0 libcogl-common
+  libcogl-pango20 libcogl-path20 libcogl20 libcolamd2 libcolord-gtk1t64
+  libcupsfilters1 libdav1d5 libdazzle-1.0-0 libdazzle-common
+  libdmapsharing-3.0-2 libdns-export1110 libebackend-1.2-10 libebook-1.2-20
+  libebook-contacts-1.2-3 libecal-2.0-1 libedata-book-1.2-26
+  libedata-cal-2.0-1 libedataserver-1.2-26 libedataserverui-1.2-3 libflac8
+  libfontembed1 libfreerdp-client2-2t64 libfreerdp-server2-2t64
+  libfreerdp2-2t64 libgc1 libgcab-1.0-0 libgedit-amtk-5-0
+  libgedit-amtk-5-common libgedit-gtksourceview-300-0
+  libgedit-gtksourceview-300-common libgegl-common libgeocode-glib0
+  libgl1-amber-dri libglapi-amber libgnome-bluetooth13t64
+  libgnome-games-support-1-3 libgnome-games-support-common libgnome-todo
+  libgoa-backend-1.0-1 libgssdp-1.2-0 libgtksourceview-3.0-1
+  libgtksourceview-3.0-common libgts-0.7-5t64 libgts-bin libgupnp-1.2-1
+  libgvc6 libgvpr2 libgweather-3-16 libgweather-common libicu70 libilmbase25
+  libisc-export1105 libixml10 libjavascriptcoregtk-4.0-18 liblab-gamut1
+  libldap-2.5-0 libllvm14t64 libmessaging-menu0 libmetis5 libmozjs-91-0
+  libmpdec3 libmujs1 libmypaint-1.5-1 libmypaint-common
+  libnautilus-extension1a libnetplan0 libnfs13 libnsl-dev libopenexr25
+  liborcus-0.17-0 liborcus-parser-0.17-0 libparted-fs-resize0t64 libpathplan4
+  libpcre3 libplacebo192 libplist3 libpoppler118 libpostproc55
+  libprotobuf-lite23 libprotobuf23 libpython3.10 libpython3.10-dev
+  libpython3.10-minimal libpython3.10-stdlib libqgis-3d3.34.4t64
+  libqgis-analysis3.34.4t64 libqgis-app3.34.4t64 libqgis-core3.34.4t64
+  libqgis-gui3.34.4t64 libqgis-native3.34.4t64 libqgis-server3.34.4t64
+  libqgisgrass8-3.34.4t64 libqgispython3.34.4t64 libqpdf28 libqqwing2v5
+  librados2 librdmacm1t64 libreoffice-pdfimport librest-0.7-0
+  librygel-core-2.6-2 librygel-db-2.6-2 librygel-renderer-2.6-2
+  librygel-server-2.6-2 libsdl-image1.2 libsmbios-c2 libsnapd-glib1
+  libsoup-gnome-2.4-1 libsrt1.4-gnutls libsuitesparseconfig5 libswresample3
+  libswscale5 libtepl-6-4 libtepl-common libtirpc-dev libumfpack5
+  libunistring2 libupnp13 liburing2 libvncserver1 libwebkit2gtk-4.0-37
+  libwinpr2-2t64 libx264-163 llvm-14 llvm-14-dev llvm-14-linker-tools
+  llvm-14-runtime llvm-14-tools lua-lpeg nautilus-share p7zip p7zip-full
+  python3-future python3-lib2to3 python3-lockfile python3-macaroonbakery
+  python3-netifaces python3-protobuf python3-pyatspi python3-pymacaroons
+  python3-pyxattr python3-rfc3339 python3.10 python3.10-dev python3.10-minimal
+  rtmpdump samba samba-ad-provision tdb-tools ubuntu-advantage-tools
+Utilize 'sudo apt autoremove' para os remover.
+0 pacotes atualizados, 0 pacotes novos instalados, 0 a serem removidos e 192 não atualizados.
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;docker-compose exec airflow-webserver python -m dst_airlines.cli run-etl --source aviationstack --endpoint flights;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C]633;D;1]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;docker --version;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CDocker version 28.4.0, build d8eb465
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;docker --version;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CDocker version 28.4.0, build d8eb465
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;docker version;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CClient: Docker Engine - Community
+ Version:           28.4.0
+ API version:       1.51
+ Go version:        go1.24.7
+ Git commit:        d8eb465
+ Built:             Wed Sep  3 20:57:05 2025
+ OS/Arch:           linux/amd64
+ Context:           default
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          28.4.0
+  API version:      1.51 (minimum version 1.24)
+  Go version:       go1.24.7
+  Git commit:       249d679
+  Built:            Wed Sep  3 20:57:05 2025
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          1.7.27
+  GitCommit:        05044ec0a9a75232cad458027ca83437aae3f4da
+ runc:
+  Version:          1.2.5
+  GitCommit:        v1.2.5-0-g59923ef
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;sudo apt update;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CAtingido:1 http://br.archive.ubuntu.com/ubuntu noble InRelease
+Atingido:2 http://br.archive.ubuntu.com/ubuntu noble-updates InRelease
+Atingido:3 http://br.archive.ubuntu.com/ubuntu noble-backports InRelease
+Atingido:4 https://packages.microsoft.com/repos/code stable InRelease
+Atingido:5 http://security.ubuntu.com/ubuntu noble-security InRelease
+Atingido:7 https://ngrok-agent.s3.amazonaws.com bookworm InRelease
+Atingido:6 https://nbg1.your-objectstorage.com/qgis-download/debian-ltr noble InRelease
+Atingido:8 https://ppa.launchpadcontent.net/linrunner/tlp/ubuntu noble InRelease
+Atingido:9 http://dell.archive.canonical.com noble InRelease
+Lendo listas de pacotes...
+Construindo árvore de dependências...
+Lendo informação de estado...
+192 pacotes podem ser atualizados. Execute 'apt list --upgradable' para vê-los.
+Lendo listas de pacotes...
+Construindo árvore de dependências...
+Lendo informação de estado...
+docker-ce já é a versão mais nova (5:28.4.0-1~ubuntu.22.04~jammy).
+docker-ce-cli já é a versão mais nova (5:28.4.0-1~ubuntu.22.04~jammy).
+containerd.io já é a versão mais nova (1.7.27-1).
+Calculando atualização...
+Os seguintes pacotes foram instalados automaticamente e já não são necessários:
+  acpi-support acpid aisleriot android-libcrypto-utils android-libext4-utils
+  android-libunwind apturl apturl-common attr branding-ubuntu cheese
+  cheese-common dctrl-tools endeavour endeavour-common fonts-kacst
+  fonts-kacst-one fonts-khmeros-core fonts-lao fonts-liberation2
+  fonts-lklug-sinhala fonts-sil-abyssinica fonts-sil-padauk fonts-thai-tlwg
+  fonts-tibetan-machine fonts-tlwg-garuda fonts-tlwg-garuda-ttf
+  fonts-tlwg-kinnari fonts-tlwg-kinnari-ttf fonts-tlwg-laksaman
+  fonts-tlwg-laksaman-ttf fonts-tlwg-loma fonts-tlwg-loma-ttf fonts-tlwg-mono
+  fonts-tlwg-mono-ttf fonts-tlwg-norasi fonts-tlwg-norasi-ttf
+  fonts-tlwg-purisa fonts-tlwg-purisa-ttf fonts-tlwg-sawasdee
+  fonts-tlwg-sawasdee-ttf fonts-tlwg-typewriter fonts-tlwg-typewriter-ttf
+  fonts-tlwg-typist fonts-tlwg-typist-ttf fonts-tlwg-typo fonts-tlwg-typo-ttf
+  fonts-tlwg-umpush fonts-tlwg-umpush-ttf fonts-tlwg-waree
+  fonts-tlwg-waree-ttf gedit gedit-common genisoimage gimp-data gir1.2-amtk-5
+  gir1.2-gck-1 gir1.2-gcr-3 gir1.2-goa-1.0 gir1.2-gtksource-300
+  gir1.2-gtksource-4 gir1.2-gweather-3.0 gir1.2-javascriptcoregtk-4.0
+  gir1.2-json-1.0 gir1.2-nma-1.0 gir1.2-snapd-1 gir1.2-soup-2.4 gir1.2-tepl-6
+  gir1.2-webkit2-4.0 gnome-bluetooth gnome-bluetooth-common gnome-mahjongg
+  gnome-mines gnome-sudoku gnome-todo gnome-video-effects graphviz
+  gstreamer1.0-clutter-3.0 guile-2.2-libs guile-3.0-libs irqbalance
+  libabsl20210324 libamd2 libann0 libappstream4 libatk1.0-data libavcodec58
+  libavfilter7 libavformat58 libavutil56 libbabl-0.1-0 libblockdev-crypto2
+  libblockdev-fs2 libblockdev-loop2 libblockdev-part-err2 libblockdev-part2
+  libblockdev-swap2 libblockdev-utils2 libblockdev2 libboost-filesystem1.74.0
+  libboost-iostreams1.74.0 libboost-locale1.74.0 libboost-regex1.74.0
+  libboost-thread1.74.0 libbpf0 libcamd2 libcamel-1.2-63 libcbor0.8
+  libccolamd2 libcdt5 libcephfs2 libcgraph6 libcheese-gtk25 libcheese8
+  libcholmod3 libclang-cpp14t64 libclutter-1.0-0 libclutter-1.0-common
+  libclutter-gst-3.0-0 libclutter-gtk-1.0-0 libcodec2-1.0 libcogl-common
+  libcogl-pango20 libcogl-path20 libcogl20 libcolamd2 libcolord-gtk1t64
+  libcupsfilters1 libdav1d5 libdazzle-1.0-0 libdazzle-common
+  libdmapsharing-3.0-2 libdns-export1110 libebackend-1.2-10 libebook-1.2-20
+  libebook-contacts-1.2-3 libecal-2.0-1 libedata-book-1.2-26
+  libedata-cal-2.0-1 libedataserver-1.2-26 libedataserverui-1.2-3 libflac8
+  libfontembed1 libfreerdp-client2-2t64 libfreerdp-server2-2t64
+  libfreerdp2-2t64 libgc1 libgcab-1.0-0 libgedit-amtk-5-0
+  libgedit-amtk-5-common libgedit-gtksourceview-300-0
+  libgedit-gtksourceview-300-common libgegl-common libgeocode-glib0
+  libgl1-amber-dri libglapi-amber libgnome-bluetooth13t64
+  libgnome-games-support-1-3 libgnome-games-support-common libgnome-todo
+  libgoa-backend-1.0-1 libgssdp-1.2-0 libgtksourceview-3.0-1
+  libgtksourceview-3.0-common libgts-0.7-5t64 libgts-bin libgupnp-1.2-1
+  libgvc6 libgvpr2 libgweather-3-16 libgweather-common libicu70 libilmbase25
+  libisc-export1105 libixml10 libjavascriptcoregtk-4.0-18 liblab-gamut1
+  libldap-2.5-0 libllvm14t64 libmessaging-menu0 libmetis5 libmozjs-91-0
+  libmpdec3 libmujs1 libmypaint-1.5-1 libmypaint-common
+  libnautilus-extension1a libnetplan0 libnfs13 libnsl-dev libopenexr25
+  liborcus-0.17-0 liborcus-parser-0.17-0 libparted-fs-resize0t64 libpathplan4
+  libpcre3 libplacebo192 libplist3 libpoppler118 libpostproc55
+  libprotobuf-lite23 libprotobuf23 libpython3.10 libpython3.10-dev
+  libpython3.10-minimal libpython3.10-stdlib libqgis-3d3.34.4t64
+  libqgis-3d3.40.14 libqgis-analysis3.34.4t64 libqgis-analysis3.40.14
+  libqgis-app3.34.4t64 libqgis-app3.40.14 libqgis-core3.34.4t64
+  libqgis-core3.40.14 libqgis-gui3.34.4t64 libqgis-gui3.40.14
+  libqgis-native3.34.4t64 libqgis-native3.40.14 libqgis-server3.34.4t64
+  libqgis-server3.40.14 libqgisgrass8-3.34.4t64 libqgisgrass8-3.40.14
+  libqgispython3.34.4t64 libqgispython3.40.14 libqpdf28 libqqwing2v5 librados2
+  librdmacm1t64 libreoffice-pdfimport librest-0.7-0 librygel-core-2.6-2
+  librygel-db-2.6-2 librygel-renderer-2.6-2 librygel-server-2.6-2
+  libsdl-image1.2 libsmbios-c2 libsnapd-glib1 libsoup-gnome-2.4-1
+  libsrt1.4-gnutls libsuitesparseconfig5 libswresample3 libswscale5
+  libtepl-6-4 libtepl-common libtirpc-dev libumfpack5 libunistring2 libupnp13
+  liburing2 libvncserver1 libwayland-server0:i386 libwebkit2gtk-4.0-37
+  libwinpr2-2t64 libx264-163 llvm-14 llvm-14-dev llvm-14-linker-tools
+  llvm-14-runtime llvm-14-tools lua-lpeg nautilus-share p7zip p7zip-full
+  python3-future python3-lib2to3 python3-lockfile python3-macaroonbakery
+  python3-netifaces python3-protobuf python3-pyatspi python3-pymacaroons
+  python3-pyxattr python3-rfc3339 python3.10 python3.10-dev python3.10-minimal
+  rtmpdump samba samba-ad-provision tdb-tools ubuntu-advantage-tools
+Utilize 'sudo apt autoremove' para os remover.
+Obtenha mais atualizações de segurança através do Ubuntu Pro com 'esm-apps' habilitado:
+  vlc-plugin-qt libvlc5 libpostproc-dev libmagickcore-6.q16-7t64
+  libzvbi-common liburiparser1 vlc-data libqt5xml5t64 libvlccore9
+  qt5-gtk-platformtheme vlc libqt5sql5t64 vlc-bin libmagickcore-6.q16-7-extra
+  libqt5test5t64 libwinpr2-2t64 vlc-l10n gimp-data libcjson1 libavdevice60
+  ffmpeg libpostproc57 vlc-plugin-samba python3-fonttools libswscale-dev
+  libqt5gui5t64 libmbedcrypto7t64 libmbedtls14t64 libavdevice-dev libavcodec60
+  libavcodec60 libgstreamer-plugins-bad1.0-0 libzvbi0t64 libzvbi0t64
+  libqt5printsupport5t64 vlc-plugin-notify libqt5concurrent5t64 libavutil58
+  libavutil58 libqt5widgets5t64 libswscale7 libfreerdp-server2-2t64
+  libfreerdp-client2-2t64 libqt5dbus5t64 vlc-plugin-access-extra
+  libqt5network5t64 libavutil-dev vlc-plugin-skins2 libqt5opengl5t64
+  vlc-plugin-video-splitter libswresample4 libswresample4 imagemagick-6-common
+  vlc-plugin-video-output libavfilter-dev libqt5sql5-sqlite 7zip libavformat60
+  gstreamer1.0-plugins-bad libfreerdp2-2t64 libavformat-dev libavcodec-dev
+  libvlc-bin libmbedx509-1t64 libqt5core5t64 libswresample-dev vlc-plugin-base
+  vlc-plugin-visualization libavfilter9 libmagickwand-6.q16-7t64
+Saiba mais sobre o Ubuntu Pro em https://ubuntu.com/pro
+Os NOVOS pacotes a seguir serão instalados:
+  libqgis-3d3.44.9 libqgis-analysis3.44.9 libqgis-app3.44.9 libqgis-core3.44.9
+  libqgis-gui3.44.9 libqgis-native3.44.9 libqgis-server3.44.9
+  libqgisgrass8-3.44.9 libqgispython3.44.9 linux-headers-6.8.0-107
+  linux-headers-6.8.0-107-generic linux-image-6.8.0-107-generic
+  linux-modules-6.8.0-107-generic linux-modules-extra-6.8.0-107-generic
+  linux-tools-6.8.0-107 linux-tools-6.8.0-107-generic socat
+As seguintes atualizações foram adiadas devido ao faseamento:
+  libnss-systemd libpam-systemd libsystemd-shared libsystemd0 libsystemd0:i386
+  libudev1 libudev1:i386 systemd systemd-dev systemd-oomd systemd-resolved
+  systemd-sysv systemd-timesyncd udev
+Os pacotes a seguir serão atualizados:
+  alsa-ucm-conf base-files binutils binutils-common binutils-x86-64-linux-gnu
+  cloud-init code coreutils file-roller fwupd gdb gdm3 gir1.2-gdkpixbuf-2.0
+  gir1.2-gdm-1.0 gir1.2-gtk-4.0 gir1.2-mutter-14 gir1.2-nm-1.0 gnome-keyring
+  gnome-keyring-pkcs11 gnome-remote-desktop gnome-shell gnome-shell-common
+  gstreamer1.0-pipewire i965-va-driver i965-va-driver:i386 initramfs-tools
+  initramfs-tools-bin initramfs-tools-core intel-media-va-driver
+  intel-media-va-driver:i386 language-pack-en language-pack-en-base
+  language-pack-gnome-en language-pack-gnome-en-base language-pack-gnome-pt
+  language-pack-gnome-pt-base language-pack-pt language-pack-pt-base
+  libarchive13t64 libbinutils libboost-filesystem1.83.0
+  libboost-iostreams1.83.0 libboost-locale1.83.0 libboost-thread1.83.0
+  libctf-nobfd0 libctf0 libdrm-amdgpu1 libdrm-amdgpu1:i386 libdrm-common
+  libdrm-intel1 libdrm-intel1:i386 libdrm-nouveau2 libdrm-radeon1 libdrm2
+  libdrm2:i386 libegl-mesa0 libegl-mesa0:i386 libfprint-2-2 libfprint-2-tod1
+  libfwupd2 libgbm1 libgbm1:i386 libgdk-pixbuf-2.0-0 libgdk-pixbuf-2.0-0:i386
+  libgdk-pixbuf2.0-bin libgdk-pixbuf2.0-common libgdm1 libgl1-mesa-dri
+  libgl1-mesa-dri:i386 libglx-mesa0 libglx-mesa0:i386 libgphoto2-6t64
+  libgphoto2-l10n libgphoto2-port12t64 libgprofng0 libgtk-4-1 libgtk-4-bin
+  libgtk-4-common libgtk-4-media-gstreamer libigdgmm12 libigdgmm12:i386
+  libinput-bin libinput10 libldap-common libldap2 libmtp-common libmtp-runtime
+  libmtp9t64 libmutter-14-0 libnetplan1 libnftables1 libnm0 libnm0:i386
+  libnuma1 libnuma1:i386 libpam-gnome-keyring libpam-sss libpipewire-0.3-0t64
+  libpipewire-0.3-common libpipewire-0.3-modules libqgis-customwidgets
+  libqpdf29t64 libsframe1 libspa-0.2-bluetooth libspa-0.2-modules libssl-dev
+  libssl3t64 libssl3t64:i386 libva-drm2 libva-drm2:i386 libva-glx2
+  libva-glx2:i386 libva-wayland2 libva-x11-2 libva-x11-2:i386 libva2
+  libva2:i386 libxatracker2 libxnvctrl0 linux-base linux-firmware
+  linux-generic linux-headers-generic linux-image-generic linux-libc-dev
+  linux-tools-common lshw mesa-libgallium mesa-libgallium:i386 mesa-va-drivers
+  mesa-va-drivers:i386 mesa-vdpau-drivers mesa-vdpau-drivers:i386
+  mesa-vulkan-drivers mesa-vulkan-drivers:i386 mutter-common mutter-common-bin
+  netplan-generator netplan.io network-manager
+  network-manager-config-connectivity-ubuntu network-manager-openvpn
+  network-manager-openvpn-gnome nftables ngrok numactl openssl openvpn
+  pipewire pipewire-alsa pipewire-audio pipewire-bin pipewire-pulse
+  python-apt-common python3-apt python3-distupgrade python3-netplan
+  python3-qgis python3-qgis-common python3-software-properties qgis
+  qgis-common qgis-plugin-grass qgis-plugin-grass-common qgis-provider-grass
+  qgis-providers qgis-providers-common software-properties-common
+  software-properties-gtk systemd-hwe-hwdb thermald ubuntu-drivers-common
+  ubuntu-release-upgrader-core ubuntu-release-upgrader-gtk va-driver-all
+  va-driver-all:i386 wpasupplicant xwayland
+178 pacotes atualizados, 17 pacotes novos instalados, 0 a serem removidos e 14 não atualizados.
+15 atualizações de segurança de LTS
+É preciso baixar 972 MB/1.167 MB de arquivos.
+Depois desta operação, 610 MB adicionais de espaço em disco serão usados.
+Você quer continuar? [S/n] Abortar.
+]633;D;1]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;sudo apt upgrade docker-ce docker-ce-cli containerd.io;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;CLendo listas de pacotes...
+Construindo árvore de dependências...
+Lendo informação de estado...
+docker-ce já é a versão mais nova (5:28.4.0-1~ubuntu.22.04~jammy).
+docker-ce-cli já é a versão mais nova (5:28.4.0-1~ubuntu.22.04~jammy).
+containerd.io já é a versão mais nova (1.7.27-1).
+Calculando atualização...
+Os seguintes pacotes foram instalados automaticamente e já não são necessários:
+  acpi-support acpid aisleriot android-libcrypto-utils android-libext4-utils
+  android-libunwind apturl apturl-common attr branding-ubuntu cheese
+  cheese-common dctrl-tools endeavour endeavour-common fonts-kacst
+  fonts-kacst-one fonts-khmeros-core fonts-lao fonts-liberation2
+  fonts-lklug-sinhala fonts-sil-abyssinica fonts-sil-padauk fonts-thai-tlwg
+  fonts-tibetan-machine fonts-tlwg-garuda fonts-tlwg-garuda-ttf
+  fonts-tlwg-kinnari fonts-tlwg-kinnari-ttf fonts-tlwg-laksaman
+  fonts-tlwg-laksaman-ttf fonts-tlwg-loma fonts-tlwg-loma-ttf fonts-tlwg-mono
+  fonts-tlwg-mono-ttf fonts-tlwg-norasi fonts-tlwg-norasi-ttf
+  fonts-tlwg-purisa fonts-tlwg-purisa-ttf fonts-tlwg-sawasdee
+  fonts-tlwg-sawasdee-ttf fonts-tlwg-typewriter fonts-tlwg-typewriter-ttf
+  fonts-tlwg-typist fonts-tlwg-typist-ttf fonts-tlwg-typo fonts-tlwg-typo-ttf
+  fonts-tlwg-umpush fonts-tlwg-umpush-ttf fonts-tlwg-waree
+  fonts-tlwg-waree-ttf gedit gedit-common genisoimage gimp-data gir1.2-amtk-5
+  gir1.2-gck-1 gir1.2-gcr-3 gir1.2-goa-1.0 gir1.2-gtksource-300
+  gir1.2-gtksource-4 gir1.2-gweather-3.0 gir1.2-javascriptcoregtk-4.0
+  gir1.2-json-1.0 gir1.2-nma-1.0 gir1.2-snapd-1 gir1.2-soup-2.4 gir1.2-tepl-6
+  gir1.2-webkit2-4.0 gnome-bluetooth gnome-bluetooth-common gnome-mahjongg
+  gnome-mines gnome-sudoku gnome-todo gnome-video-effects graphviz
+  gstreamer1.0-clutter-3.0 guile-2.2-libs guile-3.0-libs irqbalance
+  libabsl20210324 libamd2 libann0 libappstream4 libatk1.0-data libavcodec58
+  libavfilter7 libavformat58 libavutil56 libbabl-0.1-0 libblockdev-crypto2
+  libblockdev-fs2 libblockdev-loop2 libblockdev-part-err2 libblockdev-part2
+  libblockdev-swap2 libblockdev-utils2 libblockdev2 libboost-filesystem1.74.0
+  libboost-iostreams1.74.0 libboost-locale1.74.0 libboost-regex1.74.0
+  libboost-thread1.74.0 libbpf0 libcamd2 libcamel-1.2-63 libcbor0.8
+  libccolamd2 libcdt5 libcephfs2 libcgraph6 libcheese-gtk25 libcheese8
+  libcholmod3 libclang-cpp14t64 libclutter-1.0-0 libclutter-1.0-common
+  libclutter-gst-3.0-0 libclutter-gtk-1.0-0 libcodec2-1.0 libcogl-common
+  libcogl-pango20 libcogl-path20 libcogl20 libcolamd2 libcolord-gtk1t64
+  libcupsfilters1 libdav1d5 libdazzle-1.0-0 libdazzle-common
+  libdmapsharing-3.0-2 libdns-export1110 libebackend-1.2-10 libebook-1.2-20
+  libebook-contacts-1.2-3 libecal-2.0-1 libedata-book-1.2-26
+  libedata-cal-2.0-1 libedataserver-1.2-26 libedataserverui-1.2-3 libflac8
+  libfontembed1 libfreerdp-client2-2t64 libfreerdp-server2-2t64
+  libfreerdp2-2t64 libgc1 libgcab-1.0-0 libgedit-amtk-5-0
+  libgedit-amtk-5-common libgedit-gtksourceview-300-0
+  libgedit-gtksourceview-300-common libgegl-common libgeocode-glib0
+  libgl1-amber-dri libglapi-amber libgnome-bluetooth13t64
+  libgnome-games-support-1-3 libgnome-games-support-common libgnome-todo
+  libgoa-backend-1.0-1 libgssdp-1.2-0 libgtksourceview-3.0-1
+  libgtksourceview-3.0-common libgts-0.7-5t64 libgts-bin libgupnp-1.2-1
+  libgvc6 libgvpr2 libgweather-3-16 libgweather-common libicu70 libilmbase25
+  libisc-export1105 libixml10 libjavascriptcoregtk-4.0-18 liblab-gamut1
+  libldap-2.5-0 libllvm14t64 libmessaging-menu0 libmetis5 libmozjs-91-0
+  libmpdec3 libmujs1 libmypaint-1.5-1 libmypaint-common
+  libnautilus-extension1a libnetplan0 libnfs13 libnsl-dev libopenexr25
+  liborcus-0.17-0 liborcus-parser-0.17-0 libparted-fs-resize0t64 libpathplan4
+  libpcre3 libplacebo192 libplist3 libpoppler118 libpostproc55
+  libprotobuf-lite23 libprotobuf23 libpython3.10 libpython3.10-dev
+  libpython3.10-minimal libpython3.10-stdlib libqgis-3d3.34.4t64
+  libqgis-3d3.40.14 libqgis-analysis3.34.4t64 libqgis-analysis3.40.14
+  libqgis-app3.34.4t64 libqgis-app3.40.14 libqgis-core3.34.4t64
+  libqgis-core3.40.14 libqgis-gui3.34.4t64 libqgis-gui3.40.14
+  libqgis-native3.34.4t64 libqgis-native3.40.14 libqgis-server3.34.4t64
+  libqgis-server3.40.14 libqgisgrass8-3.34.4t64 libqgisgrass8-3.40.14
+  libqgispython3.34.4t64 libqgispython3.40.14 libqpdf28 libqqwing2v5 librados2
+  librdmacm1t64 libreoffice-pdfimport librest-0.7-0 librygel-core-2.6-2
+  librygel-db-2.6-2 librygel-renderer-2.6-2 librygel-server-2.6-2
+  libsdl-image1.2 libsmbios-c2 libsnapd-glib1 libsoup-gnome-2.4-1
+  libsrt1.4-gnutls libsuitesparseconfig5 libswresample3 libswscale5
+  libtepl-6-4 libtepl-common libtirpc-dev libumfpack5 libunistring2 libupnp13
+  liburing2 libvncserver1 libwayland-server0:i386 libwebkit2gtk-4.0-37
+  libwinpr2-2t64 libx264-163 llvm-14 llvm-14-dev llvm-14-linker-tools
+  llvm-14-runtime llvm-14-tools lua-lpeg nautilus-share p7zip p7zip-full
+  python3-future python3-lib2to3 python3-lockfile python3-macaroonbakery
+  python3-netifaces python3-protobuf python3-pyatspi python3-pymacaroons
+  python3-pyxattr python3-rfc3339 python3.10 python3.10-dev python3.10-minimal
+  rtmpdump samba samba-ad-provision tdb-tools ubuntu-advantage-tools
+Utilize 'sudo apt autoremove' para os remover.
+Obtenha mais atualizações de segurança através do Ubuntu Pro com 'esm-apps' habilitado:
+  vlc-plugin-qt libvlc5 libpostproc-dev libmagickcore-6.q16-7t64
+  libzvbi-common liburiparser1 vlc-data libqt5xml5t64 libvlccore9
+  qt5-gtk-platformtheme vlc libqt5sql5t64 vlc-bin libmagickcore-6.q16-7-extra
+  libqt5test5t64 libwinpr2-2t64 vlc-l10n gimp-data libcjson1 libavdevice60
+  ffmpeg libpostproc57 vlc-plugin-samba python3-fonttools libswscale-dev
+  libqt5gui5t64 libmbedcrypto7t64 libmbedtls14t64 libavdevice-dev libavcodec60
+  libavcodec60 libgstreamer-plugins-bad1.0-0 libzvbi0t64 libzvbi0t64
+  libqt5printsupport5t64 vlc-plugin-notify libqt5concurrent5t64 libavutil58
+  libavutil58 libqt5widgets5t64 libswscale7 libfreerdp-server2-2t64
+  libfreerdp-client2-2t64 libqt5dbus5t64 vlc-plugin-access-extra
+  libqt5network5t64 libavutil-dev vlc-plugin-skins2 libqt5opengl5t64
+  vlc-plugin-video-splitter libswresample4 libswresample4 imagemagick-6-common
+  vlc-plugin-video-output libavfilter-dev libqt5sql5-sqlite 7zip libavformat60
+  gstreamer1.0-plugins-bad libfreerdp2-2t64 libavformat-dev libavcodec-dev
+  libvlc-bin libmbedx509-1t64 libqt5core5t64 libswresample-dev vlc-plugin-base
+  vlc-plugin-visualization libavfilter9 libmagickwand-6.q16-7t64
+Saiba mais sobre o Ubuntu Pro em https://ubuntu.com/pro
+Os NOVOS pacotes a seguir serão instalados:
+  libqgis-3d3.44.9 libqgis-analysis3.44.9 libqgis-app3.44.9 libqgis-core3.44.9
+  libqgis-gui3.44.9 libqgis-native3.44.9 libqgis-server3.44.9
+  libqgisgrass8-3.44.9 libqgispython3.44.9 linux-headers-6.8.0-107
+  linux-headers-6.8.0-107-generic linux-image-6.8.0-107-generic
+  linux-modules-6.8.0-107-generic linux-modules-extra-6.8.0-107-generic
+  linux-tools-6.8.0-107 linux-tools-6.8.0-107-generic socat
+As seguintes atualizações foram adiadas devido ao faseamento:
+  libnss-systemd libpam-systemd libsystemd-shared libsystemd0 libsystemd0:i386
+  libudev1 libudev1:i386 systemd systemd-dev systemd-oomd systemd-resolved
+  systemd-sysv systemd-timesyncd udev
+Os pacotes a seguir serão atualizados:
+  alsa-ucm-conf base-files binutils binutils-common binutils-x86-64-linux-gnu
+  cloud-init code coreutils file-roller fwupd gdb gdm3 gir1.2-gdkpixbuf-2.0
+  gir1.2-gdm-1.0 gir1.2-gtk-4.0 gir1.2-mutter-14 gir1.2-nm-1.0 gnome-keyring
+  gnome-keyring-pkcs11 gnome-remote-desktop gnome-shell gnome-shell-common
+  gstreamer1.0-pipewire i965-va-driver i965-va-driver:i386 initramfs-tools
+  initramfs-tools-bin initramfs-tools-core intel-media-va-driver
+  intel-media-va-driver:i386 language-pack-en language-pack-en-base
+  language-pack-gnome-en language-pack-gnome-en-base language-pack-gnome-pt
+  language-pack-gnome-pt-base language-pack-pt language-pack-pt-base
+  libarchive13t64 libbinutils libboost-filesystem1.83.0
+  libboost-iostreams1.83.0 libboost-locale1.83.0 libboost-thread1.83.0
+  libctf-nobfd0 libctf0 libdrm-amdgpu1 libdrm-amdgpu1:i386 libdrm-common
+  libdrm-intel1 libdrm-intel1:i386 libdrm-nouveau2 libdrm-radeon1 libdrm2
+  libdrm2:i386 libegl-mesa0 libegl-mesa0:i386 libfprint-2-2 libfprint-2-tod1
+  libfwupd2 libgbm1 libgbm1:i386 libgdk-pixbuf-2.0-0 libgdk-pixbuf-2.0-0:i386
+  libgdk-pixbuf2.0-bin libgdk-pixbuf2.0-common libgdm1 libgl1-mesa-dri
+  libgl1-mesa-dri:i386 libglx-mesa0 libglx-mesa0:i386 libgphoto2-6t64
+  libgphoto2-l10n libgphoto2-port12t64 libgprofng0 libgtk-4-1 libgtk-4-bin
+  libgtk-4-common libgtk-4-media-gstreamer libigdgmm12 libigdgmm12:i386
+  libinput-bin libinput10 libldap-common libldap2 libmtp-common libmtp-runtime
+  libmtp9t64 libmutter-14-0 libnetplan1 libnftables1 libnm0 libnm0:i386
+  libnuma1 libnuma1:i386 libpam-gnome-keyring libpam-sss libpipewire-0.3-0t64
+  libpipewire-0.3-common libpipewire-0.3-modules libqgis-customwidgets
+  libqpdf29t64 libsframe1 libspa-0.2-bluetooth libspa-0.2-modules libssl-dev
+  libssl3t64 libssl3t64:i386 libva-drm2 libva-drm2:i386 libva-glx2
+  libva-glx2:i386 libva-wayland2 libva-x11-2 libva-x11-2:i386 libva2
+  libva2:i386 libxatracker2 libxnvctrl0 linux-base linux-firmware
+  linux-generic linux-headers-generic linux-image-generic linux-libc-dev
+  linux-tools-common lshw mesa-libgallium mesa-libgallium:i386 mesa-va-drivers
+  mesa-va-drivers:i386 mesa-vdpau-drivers mesa-vdpau-drivers:i386
+  mesa-vulkan-drivers mesa-vulkan-drivers:i386 mutter-common mutter-common-bin
+  netplan-generator netplan.io network-manager
+  network-manager-config-connectivity-ubuntu network-manager-openvpn
+  network-manager-openvpn-gnome nftables ngrok numactl openssl openvpn
+  pipewire pipewire-alsa pipewire-audio pipewire-bin pipewire-pulse
+  python-apt-common python3-apt python3-distupgrade python3-netplan
+  python3-qgis python3-qgis-common python3-software-properties qgis
+  qgis-common qgis-plugin-grass qgis-plugin-grass-common qgis-provider-grass
+  qgis-providers qgis-providers-common software-properties-common
+  software-properties-gtk systemd-hwe-hwdb thermald ubuntu-drivers-common
+  ubuntu-release-upgrader-core ubuntu-release-upgrader-gtk va-driver-all
+  va-driver-all:i386 wpasupplicant xwayland
+178 pacotes atualizados, 17 pacotes novos instalados, 0 a serem removidos e 14 não atualizados.
+15 atualizações de segurança de LTS
+É preciso baixar 972 MB/1.167 MB de arquivos.
+Depois desta operação, 610 MB adicionais de espaço em disco serão usados.
+Você quer continuar? [S/n] ]633;D;130]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;clear;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C[H[2J[3J]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;clear;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C[H[2J[3J]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;clear;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C[H[2J[3J]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;cl;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C]633;D;127]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C]633;D]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml]633;E;clear;3e9df965-37d5-4383-a65c-5fd02c67b31b]633;C[H[2J[3J]633;D;0]633;P;Cwd=/home/linux/dev/github/pessoal/airlines-ml
