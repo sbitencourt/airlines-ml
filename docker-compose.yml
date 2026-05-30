@@ -26,6 +26,20 @@ services:
     volumes:
       - ./sql/init:/docker-entrypoint-initdb.d
 
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: dst_fastapi
+    env_file:
+      - .env.docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+      - postgres
+
   airflow-webserver:
     build:
       context: .

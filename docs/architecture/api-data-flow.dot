@@ -1,0 +1,173 @@
+digraph dst_airlines_api_data_flow {
+    graph [
+        label="DST Airlines - API Data Flow",
+        labelloc="t",
+        fontsize=20,
+        fontname="Helvetica",
+        rankdir=LR,
+        splines=ortho,
+        nodesep=0.65,
+        ranksep=0.9
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fontname="Helvetica",
+        fontsize=11,
+        color="#334155",
+        fillcolor="#F8FAFC"
+    ];
+
+    edge [
+        color="#475569",
+        arrowsize=0.8,
+        fontname="Helvetica",
+        fontsize=9
+    ];
+
+    client [
+        label="Client\nBrowser / curl / Frontend",
+        fillcolor="#E0F2FE",
+        color="#0369A1"
+    ];
+
+    docs [
+        label="FastAPI Docs\n/docs",
+        fillcolor="#E0F2FE",
+        color="#0369A1"
+    ];
+
+    api_app [
+        label="FastAPI App\nsrc/dst_airlines/api/main.py",
+        fillcolor="#DBEAFE",
+        color="#1D4ED8"
+    ];
+
+    routes [
+        label="Routes Layer\napi/routes/*.py",
+        fillcolor="#DBEAFE",
+        color="#1D4ED8"
+    ];
+
+    schemas [
+        label="Schemas Layer\napi/schemas/*.py\nRequest / Response validation",
+        fillcolor="#FCE7F3",
+        color="#BE185D"
+    ];
+
+    services [
+        label="Services Layer\napi/services/*.py\nBusiness orchestration",
+        fillcolor="#DCFCE7",
+        color="#15803D"
+    ];
+
+    run_etl [
+        label="CLI Orchestrator\nsrc/dst_airlines/cli.py\nrun_etl(source, endpoint, run_id)",
+        fillcolor="#FEF3C7",
+        color="#B45309"
+    ];
+
+    registry [
+        label="Pipeline Registry\nsrc/dst_airlines/pipelines/registry.py\nget_pipeline() / PIPELINES",
+        fillcolor="#FEF3C7",
+        color="#B45309"
+    ];
+
+    extract [
+        label="Extract Step\netl/extract/*.py\nExternal API ingestion",
+        fillcolor="#EDE9FE",
+        color="#7C3AED"
+    ];
+
+    transform [
+        label="Transform Step\netl/transform/*.py\nNormalize / clean / enrich",
+        fillcolor="#EDE9FE",
+        color="#7C3AED"
+    ];
+
+    load [
+        label="Load Step\netl/load/*.py\nPersist curated data",
+        fillcolor="#EDE9FE",
+        color="#7C3AED"
+    ];
+
+    external_api [
+        label="External APIs\nAviationstack / Weather / Position",
+        shape=cloud,
+        fillcolor="#FEE2E2",
+        color="#DC2626"
+    ];
+
+    raw_data [
+        label="data/raw\nRaw payloads",
+        shape=cylinder,
+        fillcolor="#F1F5F9",
+        color="#475569"
+    ];
+
+    incoming_data [
+        label="data/incoming\nNormalized intermediate files",
+        shape=cylinder,
+        fillcolor="#F1F5F9",
+        color="#475569"
+    ];
+
+    processed_data [
+        label="data/processed\nProcessed datasets",
+        shape=cylinder,
+        fillcolor="#F1F5F9",
+        color="#475569"
+    ];
+
+    mongodb [
+        label="MongoDB\nFlights / Airlines / Airports collections",
+        shape=cylinder,
+        fillcolor="#DCFCE7",
+        color="#15803D"
+    ];
+
+    logs [
+        label="Logs / Metrics\nlog_event()\nPrometheus metrics",
+        shape=note,
+        fillcolor="#FAFAFA",
+        color="#71717A"
+    ];
+
+    response [
+        label="HTTP Response\nJSON status / data / errors",
+        fillcolor="#E0F2FE",
+        color="#0369A1"
+    ];
+
+    client -> api_app [label="HTTP request"];
+    client -> docs [label="OpenAPI UI"];
+    docs -> api_app [label="Try it out"];
+
+    api_app -> routes [label="dispatch"];
+    routes -> schemas [label="validate input/output"];
+    routes -> services [label="call service"];
+
+    services -> registry [label="list or validate pipeline"];
+    services -> run_etl [label="execute pipeline"];
+
+    run_etl -> registry [label="get pipeline definition"];
+    registry -> extract [label="extract_fn"];
+    registry -> transform [label="transform_fn"];
+    registry -> load [label="load_fn"];
+
+    extract -> external_api [label="fetch data"];
+    external_api -> extract [label="raw payload"];
+    extract -> raw_data [label="save raw data"];
+
+    transform -> raw_data [label="read raw payload"];
+    transform -> incoming_data [label="write normalized data"];
+
+    load -> incoming_data [label="read incoming data"];
+    load -> mongodb [label="sync to MongoDB"];
+    load -> processed_data [label="optional processed output"];
+
+    run_etl -> logs [label="etl_started / etl_finished / etl_failed"];
+    services -> response [label="return result"];
+    response -> client [label="JSON"];
+}

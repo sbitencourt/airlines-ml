@@ -5,3 +5,7 @@ python-dotenv
 prometheus-client
 apache-airflow
 psycopg[binary]
+uvicorn[standard]
+psycopg2-binary
+streamlit
+pandas

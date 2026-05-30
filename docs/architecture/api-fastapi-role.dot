@@ -1,0 +1,112 @@
+digraph dst_airlines_fastapi_role {
+    graph [
+        label="Role of FastAPI in DST Airlines Project",
+        labelloc="t",
+        fontsize=22,
+        fontname="Helvetica",
+        rankdir=LR,
+        splines=ortho,
+        nodesep=0.8,
+        ranksep=1.0
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fontname="Helvetica",
+        fontsize=12,
+        color="#334155",
+        fillcolor="#F8FAFC"
+    ];
+
+    edge [
+        color="#475569",
+        arrowsize=0.8,
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    user [
+        label="User / Developer / Frontend\nUses HTTP requests",
+        fillcolor="#E0F2FE",
+        color="#0369A1"
+    ];
+
+    fastapi [
+        label="FastAPI\nHTTP interface for the project\n\nExposes endpoints like:\nGET /health\nGET /pipelines\nPOST /pipelines/{source}/{endpoint}/run",
+        fillcolor="#DBEAFE",
+        color="#1D4ED8",
+        penwidth=2
+    ];
+
+    project [
+        label="dst_airlines Python Package\nExisting project logic",
+        fillcolor="#F8FAFC",
+        color="#334155"
+    ];
+
+    pipelines [
+        label="Pipeline Registry\nKnows available pipelines:\naviationstack/flights\naviationstack/airlines\naviationstack/airports",
+        fillcolor="#FEF3C7",
+        color="#B45309"
+    ];
+
+    etl [
+        label="ETL Process\nextract → transform → load",
+        fillcolor="#EDE9FE",
+        color="#7C3AED"
+    ];
+
+    storage [
+        label="Data Storage\nraw files\nincoming files\nMongoDB\nprocessed data",
+        shape=cylinder,
+        fillcolor="#DCFCE7",
+        color="#15803D"
+    ];
+
+    response [
+        label="JSON Response\nstatus, run_id, errors,\navailable pipelines, paths",
+        fillcolor="#E0F2FE",
+        color="#0369A1"
+    ];
+
+    user -> fastapi [
+        label="1. Sends request"
+    ];
+
+    fastapi -> project [
+        label="2. Calls existing Python code"
+    ];
+
+    project -> pipelines [
+        label="3. Validates selected pipeline"
+    ];
+
+    pipelines -> etl [
+        label="4. Executes pipeline"
+    ];
+
+    etl -> storage [
+        label="5. Reads/writes data"
+    ];
+
+    storage -> etl [
+        label="6. Data operation result"
+    ];
+
+    etl -> project [
+        label="7. Execution result"
+    ];
+
+    project -> fastapi [
+        label="8. Result or error"
+    ];
+
+    fastapi -> response [
+        label="9. Formats HTTP response"
+    ];
+
+    response -> user [
+        label="10. Returns JSON"
+    ];
+}
