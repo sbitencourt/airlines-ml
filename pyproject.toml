@@ -13,7 +13,9 @@ dependencies = [
     "pymongo",
     "fastapi",
     "uvicorn[standard]",
-    "psycopg2-binary"
+    "psycopg2-binary",
+    "streamlit",
+    "pandas"
 ]
 
 [tool.setuptools]

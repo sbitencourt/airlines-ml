@@ -40,6 +40,20 @@ services:
       - mongodb
       - postgres
 
+  streamlit:
+      build:
+        context: .
+        dockerfile: Dockerfile.streamlit
+      container_name: dst_streamlit
+      env_file:
+        - .env.docker
+      environment:
+        FASTAPI_URL: "http://fastapi:8000"
+      ports:
+        - "8501:8501"
+      depends_on:
+        - fastapi
+
   airflow-webserver:
     build:
       context: .

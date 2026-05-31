@@ -130,6 +130,135 @@ def latest_flights(limit: int = Query(20, ge=1, le=200)) -> list[dict[str, Any]]
         raise HTTPException(status_code=503, detail=f"Unable to read latest flights: {exc}")
 
 
+
+
+def _get_business_table_columns() -> set[str]:
+    """Return the available columns from the configured SQL business table/view."""
+    query = sql.SQL("SELECT * FROM {table} LIMIT 0").format(
+        table=business_table_identifier()
+    )
+
+    with postgres_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            return {column[0] for column in cur.description}
+
+
+@app.get("/flights/search", tags=["flights"])
+def search_flights(
+    flight_iata: str = Query(
+        ...,
+        min_length=1,
+        description="Flight identifier to search. Example: AF123, DL45, U24567.",
+    ),
+    limit: int = Query(10, ge=1, le=50),
+) -> list[dict[str, Any]]:
+    """Search flights in the SQL serving table/view by flight identifier.
+
+    The endpoint checks which identifier columns exist in SQL_BUSINESS_TABLE and
+    searches only those columns. This avoids hardcoding one specific schema.
+
+    Recommended SQL column names, if available:
+    - flight_iata
+    - flight_icao
+    - flight_number
+    - iata
+    - icao
+    - number
+    """
+    search_value = f"%{flight_iata.strip()}%"
+
+    candidate_columns = [
+        "flight_iata",
+        "flight_icao",
+        "flight_number",
+        "iata",
+        "icao",
+        "number",
+    ]
+
+    try:
+        available_columns = _get_business_table_columns()
+        searchable_columns = [
+            column for column in candidate_columns if column in available_columns
+        ]
+
+        if not searchable_columns:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "No searchable flight identifier column was found in SQL_BUSINESS_TABLE. "
+                    "Expected one of: flight_iata, flight_icao, flight_number, iata, icao, number."
+                ),
+            )
+
+        where_clause = sql.SQL(" OR ").join(
+            sql.SQL("CAST({column} AS TEXT) ILIKE %s").format(
+                column=sql.Identifier(column)
+            )
+            for column in searchable_columns
+        )
+
+        query = sql.SQL(
+            """
+            SELECT *
+            FROM {table}
+            WHERE {where_clause}
+            LIMIT %s
+            """
+        ).format(
+            table=business_table_identifier(),
+            where_clause=where_clause,
+        )
+
+        params = [search_value] * len(searchable_columns) + [limit]
+
+        return fetch_all(query, params)
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to search flights in PostgreSQL: {exc}",
+        )
+
+
+@app.get("/mongo/flights/search", tags=["mongo"])
+def search_raw_flights(
+    flight_iata: str = Query(
+        ...,
+        min_length=1,
+        description="Flight identifier to search in raw MongoDB documents.",
+    ),
+    limit: int = Query(10, ge=1, le=50),
+) -> list[dict[str, Any]]:
+    """Search raw/semi-structured flight documents from MongoDB by flight identifier."""
+    search_value = flight_iata.strip()
+
+    mongo_query = {
+        "$or": [
+            {"flight.iata": {"$regex": search_value, "$options": "i"}},
+            {"flight.icao": {"$regex": search_value, "$options": "i"}},
+            {"flight.number": {"$regex": search_value, "$options": "i"}},
+        ]
+    }
+
+    try:
+        client = get_mongo_client()
+        db = client[settings.mongodb_db]
+        collection = db[settings.mongodb_collection_flights]
+
+        return list(
+            collection.find(mongo_query, {"_id": 0}).limit(limit)
+        )
+    except PyMongoError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to search MongoDB flights: {exc}",
+        )
+
+
 @app.get("/routes/regions", tags=["routes"])
 def route_regions(limit: int = Query(10, ge=1, le=100)) -> list[dict[str, Any]]:
     """Return origin-region to destination-region route counts.

@@ -1,12 +1,12 @@
-import os
-from typing import Any
-
-import pandas as pd
-import requests
 import streamlit as st
 
-
-API_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
+from api_client import API_URL, call_api
+from utils import (
+    calculate_status_kpis,
+    find_first_existing_column,
+    get_source_config,
+    normalize_flights,
+)
 
 
 st.set_page_config(
@@ -15,50 +15,8 @@ st.set_page_config(
 )
 
 
-# -----------------------------
-# Helpers
-# -----------------------------
-@st.cache_data(ttl=60)
-def call_api(endpoint: str, params: dict[str, Any] | None = None):
-    url = f"{API_URL}{endpoint}"
-
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        return response.json(), None
-    except requests.exceptions.RequestException as exc:
-        return None, str(exc)
-
-
-def normalize_flights(data: list[dict[str, Any]]) -> pd.DataFrame:
-    if not data:
-        return pd.DataFrame()
-
-    df = pd.json_normalize(data)
-
-    # Intentamos ordenar columnas importantes si existen
-    preferred_columns = [
-        "flight_date",
-        "flight_status",
-        "flight.iata",
-        "flight.icao",
-        "airline.name",
-        "airline.iata",
-        "departure.airport",
-        "departure.iata",
-        "arrival.airport",
-        "arrival.iata",
-        "departure.scheduled",
-        "arrival.scheduled",
-    ]
-
-    existing_preferred = [col for col in preferred_columns if col in df.columns]
-    other_columns = [col for col in df.columns if col not in existing_preferred]
-
-    return df[existing_preferred + other_columns]
-
-
-def render_metric_card(label: str, value: str | int, help_text: str | None = None):
+def render_metric_card(label: str, value: str | int, help_text: str | None = None) -> None:
+    """Render a simple Streamlit metric card."""
     st.metric(label=label, value=value, help=help_text)
 
 
@@ -92,7 +50,6 @@ data_source = st.sidebar.radio(
 st.sidebar.divider()
 
 refresh = st.sidebar.button("Refresh data")
-
 
 if refresh:
     st.cache_data.clear()
@@ -143,19 +100,7 @@ if health_error:
 # -----------------------------
 # Data loading
 # -----------------------------
-if data_source == "MongoDB raw flights":
-    endpoint = "/mongo/flights/latest"
-    source_description = (
-        "MongoDB stores semi-structured data extracted from AviationStack. "
-        "This view is useful for validating recent ingestion."
-    )
-else:
-    endpoint = "/flights/latest"
-    source_description = (
-        "SQL contains prepared or calculated data used for business consumption. "
-        "This view is closer to Grafana Business insights."
-    )
-
+endpoint, source_description = get_source_config(data_source)
 
 flights_data, flights_error = call_api(endpoint, params={"limit": limit})
 
@@ -167,73 +112,39 @@ if flights_error:
     st.code(flights_error)
     st.stop()
 
-
 if not flights_data:
     st.warning("No data returned by the API.")
     st.stop()
 
-
 df = normalize_flights(flights_data)
 
+if df.empty:
+    st.warning("The API returned data, but it could not be normalized into a table.")
+    st.stop()
+
 
 # -----------------------------
-# KPI Section
+# Column detection
 # -----------------------------
-st.subheader("Overview")
+status_column = find_first_existing_column(
+    df,
+    ["flight_status", "status", "flight.status"],
+)
 
-total_records = len(df)
+airline_column = find_first_existing_column(
+    df,
+    ["airline.name", "airline_name", "airline"],
+)
 
-status_column = None
-for possible_column in ["flight_status", "status", "flight.status"]:
-    if possible_column in df.columns:
-        status_column = possible_column
-        break
+departure_column = find_first_existing_column(
+    df,
+    ["departure.iata", "departure_iata", "origin"],
+)
 
-airline_column = None
-for possible_column in ["airline.name", "airline_name", "airline"]:
-    if possible_column in df.columns:
-        airline_column = possible_column
-        break
-
-departure_column = None
-for possible_column in ["departure.iata", "departure_iata", "origin"]:
-    if possible_column in df.columns:
-        departure_column = possible_column
-        break
-
-arrival_column = None
-for possible_column in ["arrival.iata", "arrival_iata", "destination"]:
-    if possible_column in df.columns:
-        arrival_column = possible_column
-        break
-
-active_count = 0
-delayed_count = 0
-scheduled_count = 0
-
-if status_column:
-    statuses = df[status_column].astype(str).str.lower()
-    active_count = int((statuses == "active").sum())
-    delayed_count = int(statuses.str.contains("delay", na=False).sum())
-    scheduled_count = int((statuses == "scheduled").sum())
-
-
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-
-with kpi1:
-    render_metric_card("Records returned", total_records)
-
-with kpi2:
-    render_metric_card("Active flights", active_count)
-
-with kpi3:
-    render_metric_card("Delayed flights", delayed_count)
-
-with kpi4:
-    render_metric_card("Scheduled flights", scheduled_count)
-
-
-st.divider()
+arrival_column = find_first_existing_column(
+    df,
+    ["arrival.iata", "arrival_iata", "destination"],
+)
 
 
 # -----------------------------
@@ -256,6 +167,8 @@ with filter_cols[0]:
         filtered_df = filtered_df[
             filtered_df[status_column].astype(str).isin(selected_statuses)
         ]
+    else:
+        st.caption("Status column not available.")
 
 with filter_cols[1]:
     if airline_column:
@@ -263,14 +176,19 @@ with filter_cols[1]:
         selected_airlines = st.multiselect(
             "Filter by airline",
             options=airline_options,
-            default=airline_options[:10] if len(airline_options) > 10 else airline_options,
+            default=airline_options,
         )
         filtered_df = filtered_df[
             filtered_df[airline_column].astype(str).isin(selected_airlines)
         ]
+    else:
+        st.caption("Airline column not available.")
 
 with filter_cols[2]:
-    search_text = st.text_input("Search in table", placeholder="Example: CDG, JFK, Air France")
+    search_text = st.text_input(
+        "Search in table",
+        placeholder="Example: CDG, JFK, Air France",
+    )
 
     if search_text:
         mask = filtered_df.astype(str).apply(
@@ -278,6 +196,62 @@ with filter_cols[2]:
             axis=1,
         )
         filtered_df = filtered_df[mask]
+
+
+# -----------------------------
+# KPI Section
+# -----------------------------
+st.subheader("Overview")
+
+active_count, delayed_count, scheduled_count = calculate_status_kpis(
+    filtered_df,
+    status_column,
+)
+
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+
+with kpi1:
+    render_metric_card("Records displayed", len(filtered_df))
+
+with kpi2:
+    render_metric_card("Active flights", active_count)
+
+with kpi3:
+    render_metric_card("Delayed flights", delayed_count)
+
+with kpi4:
+    render_metric_card("Scheduled flights", scheduled_count)
+
+
+st.divider()
+
+
+# -----------------------------
+# Route summary
+# -----------------------------
+if departure_column and arrival_column and not filtered_df.empty:
+    route_df = filtered_df.copy()
+    route_df["route"] = (
+        route_df[departure_column].astype(str)
+        + " → "
+        + route_df[arrival_column].astype(str)
+    )
+
+    top_routes = (
+        route_df["route"]
+        .value_counts()
+        .head(10)
+        .reset_index()
+    )
+    top_routes.columns = ["route", "count"]
+
+    st.subheader("Top routes")
+    st.bar_chart(
+        top_routes,
+        x="route",
+        y="count",
+        use_container_width=True,
+    )
 
 
 # -----------------------------
