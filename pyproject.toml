@@ -5,11 +5,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dst_airlines"
 version = "0.1.0"
+
 dependencies = [
     "requests",
     "python-dotenv",
     "cryptography",
-    "pymongo"
+    "pymongo",
+    "fastapi",
+    "uvicorn[standard]",
+    "psycopg2-binary",
+    "streamlit",
+    "pandas",
+    "joblib",
+    "scikit-learn"
 ]
 
 [tool.setuptools]

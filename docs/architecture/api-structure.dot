@@ -1,0 +1,119 @@
+digraph dst_airlines_api_structure {
+    graph [
+        label="dst_airlines API Folder Structure",
+        labelloc="t",
+        fontsize=20,
+        fontname="Helvetica",
+        rankdir=TB,
+        splines=ortho,
+        nodesep=0.45,
+        ranksep=0.7
+    ];
+
+    node [
+        shape=folder,
+        style="rounded,filled",
+        fillcolor="#E8F1FA",
+        color="#2C5F8A",
+        fontname="Helvetica",
+        fontsize=11
+    ];
+
+    edge [
+        color="#4A4A4A",
+        arrowsize=0.7
+    ];
+
+    src [label="src"];
+    dst_airlines [label="dst_airlines"];
+    api [label="api"];
+
+    core [label="core"];
+    routes [label="routes"];
+    schemas [label="schemas"];
+    services [label="services"];
+
+    src -> dst_airlines;
+    dst_airlines -> api;
+
+    api -> core;
+    api -> routes;
+    api -> schemas;
+    api -> services;
+
+    node [
+        shape=note,
+        style="rounded,filled",
+        fillcolor="#FFFFFF",
+        color="#6B7280",
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    api_init [label="__init__.py"];
+    main_py [label="main.py\nFastAPI app factory and router registration"];
+    dependencies_py [label="dependencies.py\nShared FastAPI dependencies"];
+    errors_py [label="errors.py\nCustom API error handling"];
+
+    core_init [label="__init__.py"];
+    settings_py [label="settings.py\nAPI-specific settings"];
+
+    routes_init [label="__init__.py"];
+    health_py [label="health.py\nGET /health"];
+    system_py [label="system.py\nGET /system/paths"];
+    pipelines_py [label="pipelines.py\nGET /pipelines\nPOST /pipelines/{source}/{endpoint}/run"];
+
+    schemas_init [label="__init__.py"];
+    common_py [label="common.py\nShared response schemas"];
+    pipelines_schema_py [label="pipelines.py\nPipeline request/response schemas"];
+
+    services_init [label="__init__.py"];
+    pipelines_service_py [label="pipelines_service.py\nPipeline orchestration service"];
+
+    api -> api_init;
+    api -> main_py;
+    api -> dependencies_py;
+    api -> errors_py;
+
+    core -> core_init;
+    core -> settings_py;
+
+    routes -> routes_init;
+    routes -> health_py;
+    routes -> system_py;
+    routes -> pipelines_py;
+
+    schemas -> schemas_init;
+    schemas -> common_py;
+    schemas -> pipelines_schema_py;
+
+    services -> services_init;
+    services -> pipelines_service_py;
+
+    subgraph cluster_existing_project {
+        label="Existing dst_airlines modules used by the API";
+        fontsize=14;
+        fontname="Helvetica";
+        color="#CBD5E1";
+        style="rounded,dashed";
+
+        node [
+            shape=component,
+            style="rounded,filled",
+            fillcolor="#F8FAFC",
+            color="#64748B",
+            fontname="Helvetica",
+            fontsize=10
+        ];
+
+        cli [label="cli.py\nrun_etl()"];
+        config [label="config.py\nPROJECT_ROOT, DATA_DIR, RAW_DIR,\nINCOMING_DIR, PROCESSED_DIR"];
+        registry [label="pipelines/registry.py\nPIPELINES, get_pipeline()"];
+        etl [label="etl/\nextract, transform, load"];
+    }
+
+    pipelines_service_py -> cli [label="calls", style=dashed];
+    pipelines_service_py -> registry [label="validates/list", style=dashed];
+    system_py -> config [label="reads paths", style=dashed];
+    cli -> etl [label="orchestrates", style=dashed];
+}

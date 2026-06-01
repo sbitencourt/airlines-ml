@@ -1,0 +1,69 @@
+digraph ObservabilityArchitecture {
+    rankdir=TB;
+
+    graph [
+        fontname="Arial",
+        fontsize=12,
+        labelloc="t",
+        label="Technical Observability and Business Monitoring Architecture"
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fontname="Arial",
+        fontsize=11,
+        fillcolor="#F4F6F8",
+        color="#555555"
+    ];
+
+    edge [
+        fontname="Arial",
+        fontsize=10,
+        color="#555555"
+    ];
+
+    fastapi [
+        label="FastAPI /metrics\nAPI health\n- Request rate\n- Latency\n- HTTP errors\n- Endpoint availability"
+    ];
+
+    backend [
+        label="Backend Process /metrics\nBusiness process flow health\n- Job status\n- Stage duration\n- Failures\n- Retries\n- Throughput"
+    ];
+
+    prometheus [
+        label="Prometheus\nCollects technical and process metrics",
+        fillcolor="#FFF3E0"
+    ];
+
+    technical_grafana [
+        label="Technical Grafana\nDisplays API and backend process dashboards\nusing Prometheus as data source",
+        fillcolor="#E3F2FD"
+    ];
+
+    business_data_source [
+        label="Business Data Source\nDatabase / Data Warehouse / Domain API\n- Aircraft on ground\n- Aircraft in flight\n- Flights by status\n- Operational KPIs",
+        fillcolor="#E8F5E9"
+    ];
+
+    business_grafana [
+        label="Business Grafana\nDisplays business dashboards\nDoes not depend on Prometheus\n- Aircraft on ground\n- Aircraft in flight\n- Operational KPIs",
+        fillcolor="#F3E5F5"
+    ];
+
+    fastapi -> prometheus [
+        label="scrapes API metrics"
+    ];
+
+    backend -> prometheus [
+        label="scrapes backend process metrics"
+    ];
+
+    prometheus -> technical_grafana [
+        label="technical metrics data source"
+    ];
+
+    business_data_source -> business_grafana [
+        label="business data source"
+    ];
+}

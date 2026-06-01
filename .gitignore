@@ -1,18 +1,24 @@
 # =========================
 # Environment & Secrets
 # =========================
+.env
+.env.*
+!.env.example
 .env.docker
 .env.local
 .venv/
+venv/
+env/
 
 # =========================
 # Python
 # =========================
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
 *.egg-info/
+*$py.class
 
 # =========================
 # Testing & Coverage
@@ -20,17 +26,27 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # =========================
 # Logs
 # =========================
 *.log
+logs/
+airflow/logs/
 
 # =========================
 # IDE / Editor
 # =========================
 .vscode/
 .idea/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
 
 # =========================
 # Data (ETL pipeline)
@@ -46,7 +62,16 @@ data/mongodb_data/
 # =========================
 tools/
 
+# =========================
+# Build Artifacts
+# =========================
 build/
+dist/
+
+# =========================
+# Generated Architecture Renders
+# =========================
+docs/architecture/rendered/
 
 # =========================
 # Temporary / Debug Files
@@ -54,9 +79,24 @@ build/
 src.txt
 structure.txt
 etl.txt
+tmp/
+temp/
+
+# =========================
+# Local documentation screenshots
+# =========================
+docs/*.jpeg
+docs/*.jpg
+docs/*.png
 
 
-logs/
-airflow/logs/
-
-build/
+# =========================
+# ML Artifacts / Local Data
+# =========================
+data/
+models/
+# =========================
+# ML Artifacts / Local Data
+# =========================
+data/
+models/
