@@ -287,6 +287,35 @@ live_updated = get_display_value(
     ["live.updated", "live_updated"],
 )
 
+prediction_label = get_display_value(
+    selected_flight,
+    ["prediction_label"],
+)
+
+predicted_is_delayed = get_display_value(
+    selected_flight,
+    ["predicted_is_delayed"],
+)
+
+delay_probability = get_display_value(
+    selected_flight,
+    ["delay_probability"],
+)
+
+model_name = get_display_value(
+    selected_flight,
+    ["model_name"],
+)
+
+model_version = get_display_value(
+    selected_flight,
+    ["model_version"],
+)
+
+prediction_created_at = get_display_value(
+    selected_flight,
+    ["prediction_created_at"],
+)
 
 st.subheader("Flight status result")
 
@@ -305,6 +334,29 @@ with kpi4:
     st.metric("Route", f"{departure_iata} → {arrival_iata}")
 
 st.info(infer_flight_status_message(selected_flight))
+
+st.subheader("ML delay prediction")
+
+prediction_col_1, prediction_col_2, prediction_col_3, prediction_col_4 = st.columns(4)
+
+with prediction_col_1:
+    st.metric("Prediction", prediction_label)
+
+with prediction_col_2:
+    try:
+        probability_value = float(delay_probability)
+        st.metric("Delay probability", f"{probability_value:.1%}")
+    except (TypeError, ValueError):
+        st.metric("Delay probability", delay_probability)
+
+with prediction_col_3:
+    st.metric("Predicted delayed", predicted_is_delayed)
+
+with prediction_col_4:
+    st.metric("Model version", model_version)
+
+st.caption(f"Prediction generated at: {prediction_created_at}")
+st.caption(f"Model: {model_name}")
 
 
 # -----------------------------

@@ -1,0 +1,183 @@
+digraph dst_airlines_architecture {
+    graph [
+        rankdir=LR,
+        fontsize=12,
+        labelloc="t",
+        label="DST Airlines - Current End-to-End Architecture"
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F8F9FA",
+        color="#495057",
+        fontname="Helvetica"
+    ];
+
+    edge [
+        color="#6C757D",
+        fontname="Helvetica"
+    ];
+
+    subgraph cluster_sources {
+        label="Data Sources";
+        color="#CED4DA";
+        style="rounded";
+
+        aviationstack_flights [
+            label="AviationStack API\n/flights",
+            fillcolor="#E3F2FD"
+        ];
+
+        eurocontrol_data [
+            label="Historical EUROCONTROL-like Data\n(data/eurocontrol/*)",
+            fillcolor="#E8F5E9"
+        ];
+
+        airports_csv [
+            label="Static Airports Dataset\n(data/airports.csv)\n9057 IATA coordinates",
+            fillcolor="#FFF3CD"
+        ];
+    }
+
+    subgraph cluster_ingestion {
+        label="Raw Ingestion Layer";
+        color="#CED4DA";
+        style="rounded";
+
+        airflow_ingest [
+            label="Airflow DAG\nFlights Extraction / Batch Orchestration",
+            fillcolor="#F3E5F5"
+        ];
+
+        mongo_flights [
+            label="MongoDB\nCollection: flights\n(raw AviationStack records)",
+            fillcolor="#E8F5E9"
+        ];
+    }
+
+    subgraph cluster_training {
+        label="Model Training Layer";
+        color="#CED4DA";
+        style="rounded";
+
+        train_model [
+            label="train_delay_model.py\nTrain delay classifier",
+            fillcolor="#E8F5E9"
+        ];
+
+        delay_model [
+            label="Model Artifact\nmodels/delay_model.joblib",
+            fillcolor="#D1ECF1"
+        ];
+    }
+
+    subgraph cluster_prediction {
+        label="Batch Prediction Layer";
+        color="#CED4DA";
+        style="rounded";
+
+        airflow_predict [
+            label="Airflow Task / Batch Job\nrun_predictions.py",
+            fillcolor="#F3E5F5"
+        ];
+
+        feature_mapping [
+            label="aviationstack_to_eurocontrol_features.py\nAviationStack -> EUROCONTROL features",
+            fillcolor="#FFF3CD"
+        ];
+
+        postgres_predictions [
+            label="PostgreSQL\nTable: flight_predictions\n(serving table with ML output)",
+            fillcolor="#E8F5E9"
+        ];
+    }
+
+    subgraph cluster_serving {
+        label="Serving / API Layer";
+        color="#CED4DA";
+        style="rounded";
+
+        fastapi [
+            label="FastAPI\n/main.py",
+            fillcolor="#E3F2FD"
+        ];
+
+        endpoint_latest [
+            label="/flights/latest",
+            shape=note,
+            fillcolor="#FFFFFF"
+        ];
+
+        endpoint_search [
+            label="/flights/search?flight_iata=...",
+            shape=note,
+            fillcolor="#FFFFFF"
+        ];
+
+        endpoint_mongo [
+            label="/mongo/flights/search",
+            shape=note,
+            fillcolor="#FFFFFF"
+        ];
+    }
+
+    subgraph cluster_ui {
+        label="User Layer";
+        color="#CED4DA";
+        style="rounded";
+
+        streamlit_app [
+            label="Streamlit App\napp.py / flight_analyzer.py",
+            fillcolor="#E3F2FD"
+        ];
+
+        user [
+            label="End User\nSearch flight + status + ML prediction",
+            shape=ellipse,
+            fillcolor="#FDE2E4"
+        ];
+    }
+
+    subgraph cluster_outputs {
+        label="Output Delivered to User";
+        color="#CED4DA";
+        style="rounded";
+
+        output_info [
+            label="Returned Information\n- flight_status\n- route\n- schedule\n- live data (if available)\n- predicted_is_delayed\n- delay_probability\n- prediction_label\n- model_version",
+            fillcolor="#D1ECF1"
+        ];
+    }
+
+    aviationstack_flights -> airflow_ingest [label="batch extraction"];
+    airflow_ingest -> mongo_flights [label="store raw flights"];
+
+    eurocontrol_data -> train_model [label="historical training data"];
+    train_model -> delay_model [label="save model artifact"];
+
+    mongo_flights -> airflow_predict [label="read recent flights"];
+    airports_csv -> feature_mapping [label="airport coordinates"];
+    airflow_predict -> feature_mapping [label="normalize features"];
+    delay_model -> airflow_predict [label="load trained model"];
+    feature_mapping -> airflow_predict [label="EUROCONTROL feature matrix"];
+    airflow_predict -> postgres_predictions [label="upsert predictions"];
+
+    postgres_predictions -> fastapi [label="serving data"];
+    mongo_flights -> fastapi [label="raw fallback / diagnostics"];
+
+    fastapi -> endpoint_latest [style=dashed];
+    fastapi -> endpoint_search [style=dashed];
+    fastapi -> endpoint_mongo [style=dashed];
+
+    streamlit_app -> fastapi [label="REST calls"];
+    user -> streamlit_app [label="search flight"];
+    endpoint_latest -> streamlit_app [style=dashed];
+    endpoint_search -> streamlit_app [style=dashed];
+    endpoint_mongo -> streamlit_app [style=dashed];
+
+    streamlit_app -> output_info [label="display"];
+    output_info -> user [label="final result"];
+
+    airflow_ingest -> airflow_predict [style=dotted, label="batch flow"];
+}

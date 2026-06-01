@@ -4,3 +4,9 @@ WORKDIR /opt/airflow/project
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY src /opt/airflow/project/src
+COPY models /opt/airflow/project/models
+COPY data /opt/airflow/project/data
+
+ENV PYTHONPATH=/opt/airflow/project/src

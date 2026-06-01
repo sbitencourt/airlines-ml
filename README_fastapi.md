@@ -29,11 +29,8 @@ src/dst_airlines/api/
 Los defaults están alineados con tu `docker-compose.yml` actual.
 
 ```env
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-POSTGRES_DB=airflow
-POSTGRES_USER=root
-POSTGRES_PASSWORD=passwd
+POSTGRES_URI=postgresql://root:passwd@postgres:5432/dst_airlines
+SQL_BUSINESS_TABLE=flight_predictions
 
 MONGO_URI=mongodb://root:passwd@mongodb:27017/?authSource=admin
 MONGO_DB=dst_airlines
@@ -76,12 +73,16 @@ Cambia `SQL_BUSINESS_TABLE` al nombre real de tu tabla SQL preparada para Grafan
 
 ## Endpoints incluidos
 
-- `GET /health`
-- `GET /business/kpis`
-- `GET /flights/status-summary`
-- `GET /flights/latest`
-- `GET /routes/regions`
-- `GET /mongo/flights/latest`
+
+GET /health
+GET /flights/latest
+GET /flights/search?flight_iata=IW1851&limit=10
+GET /mongo/flights/latest
+GET /mongo/flights/search?flight_iata=IW1851&limit=10
+GET /business/kpis
+GET /flights/status-summary
+
+
 
 ## Documentación Swagger
 

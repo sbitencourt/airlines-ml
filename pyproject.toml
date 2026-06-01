@@ -15,7 +15,9 @@ dependencies = [
     "uvicorn[standard]",
     "psycopg2-binary",
     "streamlit",
-    "pandas"
+    "pandas",
+    "joblib",
+    "scikit-learn"
 ]
 
 [tool.setuptools]

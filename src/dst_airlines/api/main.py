@@ -61,19 +61,21 @@ def health() -> dict[str, Any]:
 
 @app.get("/business/kpis", tags=["business"])
 def business_kpis() -> dict[str, int]:
-    """Return main business KPIs from the SQL serving table/view.
+    """Return main business KPIs from the SQL serving table/view."""
 
-    Expected column in SQL_BUSINESS_TABLE:
-    - status: flight status, e.g. active, scheduled, delayed
-
-    The table/view name is configurable with SQL_BUSINESS_TABLE.
-    """
     query = sql.SQL(
         """
         SELECT
             COUNT(*)::int AS observed_flights,
-            COUNT(*) FILTER (WHERE lower(coalesce(status, '')) = 'active')::int AS active_flights,
-            COUNT(*) FILTER (WHERE lower(coalesce(status, '')) = 'delayed')::int AS delayed_flights,
+            COUNT(*) FILTER (
+                WHERE lower(coalesce(flight_status, '')) = 'active'
+            )::int AS active_flights,
+            COUNT(*) FILTER (
+                WHERE lower(coalesce(flight_status, '')) = 'landed'
+            )::int AS landed_flights,
+            COUNT(*) FILTER (
+                WHERE predicted_is_delayed = true
+            )::int AS predicted_delayed_flights,
             COUNT(*)::int AS route_records
         FROM {table}
         """
@@ -84,7 +86,8 @@ def business_kpis() -> dict[str, int]:
         return row or {
             "observed_flights": 0,
             "active_flights": 0,
-            "delayed_flights": 0,
+            "landed_flights": 0,
+            "predicted_delayed_flights": 0,
             "route_records": 0,
         }
     except Exception as exc:
@@ -103,9 +106,11 @@ def flight_status_summary() -> list[dict[str, Any]]:
     """Count flights by status from the SQL serving table/view."""
     query = sql.SQL(
         """
-        SELECT coalesce(status, 'unknown') AS status, COUNT(*)::int AS flights
+        SELECT
+            coalesce(flight_status, 'unknown') AS flight_status,
+            COUNT(*)::int AS flights
         FROM {table}
-        GROUP BY coalesce(status, 'unknown')
+        GROUP BY coalesce(flight_status, 'unknown')
         ORDER BY flights DESC
         """
     ).format(table=business_table_identifier())
@@ -113,22 +118,31 @@ def flight_status_summary() -> list[dict[str, Any]]:
     try:
         return fetch_all(query)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"Unable to read status summary: {exc}")
-
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to read status summary: {exc}",
+        )
 
 @app.get("/flights/latest", tags=["flights"])
 def latest_flights(limit: int = Query(20, ge=1, le=200)) -> list[dict[str, Any]]:
-    """Return recent rows from the SQL serving table/view.
-
-    If your table has a date column, you can add an ORDER BY clause adapted to your schema.
-    """
-    query = sql.SQL("SELECT * FROM {table} LIMIT %s").format(table=business_table_identifier())
+    """Return latest prediction rows from the SQL serving table/view."""
+    query = sql.SQL(
+        """
+        SELECT *
+        FROM {table}
+        ORDER BY prediction_created_at DESC NULLS LAST,
+                 departure_scheduled DESC NULLS LAST
+        LIMIT %s
+        """
+    ).format(table=business_table_identifier())
 
     try:
         return fetch_all(query, [limit])
     except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"Unable to read latest flights: {exc}")
-
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to read latest flights: {exc}",
+        )
 
 
 
@@ -204,6 +218,8 @@ def search_flights(
             SELECT *
             FROM {table}
             WHERE {where_clause}
+            ORDER BY prediction_created_at DESC NULLS LAST,
+                    departure_scheduled DESC NULLS LAST
             LIMIT %s
             """
         ).format(
@@ -241,6 +257,9 @@ def search_raw_flights(
             {"flight.iata": {"$regex": search_value, "$options": "i"}},
             {"flight.icao": {"$regex": search_value, "$options": "i"}},
             {"flight.number": {"$regex": search_value, "$options": "i"}},
+            {"flight_iata": {"$regex": search_value, "$options": "i"}},
+            {"flight_icao": {"$regex": search_value, "$options": "i"}},
+            {"flight_number": {"$regex": search_value, "$options": "i"}},
         ]
     }
 
@@ -259,22 +278,22 @@ def search_raw_flights(
         )
 
 
-@app.get("/routes/regions", tags=["routes"])
-def route_regions(limit: int = Query(10, ge=1, le=100)) -> list[dict[str, Any]]:
-    """Return origin-region to destination-region route counts.
-
-    Expected columns in SQL_BUSINESS_TABLE:
-    - origin_region
-    - destination_region
-    """
+@app.get("/routes/top", tags=["routes"])
+def top_routes(limit: int = Query(10, ge=1, le=100)) -> list[dict[str, Any]]:
+    """Return top routes based on departure and arrival IATA."""
     query = sql.SQL(
         """
         SELECT
-            coalesce(origin_region, 'unknown') AS origin_region,
-            coalesce(destination_region, 'unknown') AS destination_region,
-            COUNT(*)::int AS flights
+            coalesce(departure_iata, 'unknown') AS departure_iata,
+            coalesce(arrival_iata, 'unknown') AS arrival_iata,
+            COUNT(*)::int AS flights,
+            COUNT(*) FILTER (
+                WHERE predicted_is_delayed = true
+            )::int AS predicted_delayed_flights,
+            AVG(delay_probability)::float AS avg_delay_probability
         FROM {table}
-        GROUP BY coalesce(origin_region, 'unknown'), coalesce(destination_region, 'unknown')
+        GROUP BY coalesce(departure_iata, 'unknown'),
+                 coalesce(arrival_iata, 'unknown')
         ORDER BY flights DESC
         LIMIT %s
         """
@@ -283,8 +302,10 @@ def route_regions(limit: int = Query(10, ge=1, le=100)) -> list[dict[str, Any]]:
     try:
         return fetch_all(query, [limit])
     except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"Unable to read route regions: {exc}")
-
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to read top routes: {exc}",
+        )
 
 def _mongo_find(collection_name: str, limit: int) -> list[dict[str, Any]]:
     client = get_mongo_client()

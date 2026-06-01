@@ -88,3 +88,15 @@ temp/
 docs/*.jpeg
 docs/*.jpg
 docs/*.png
+
+
+# =========================
+# ML Artifacts / Local Data
+# =========================
+data/
+models/
+# =========================
+# ML Artifacts / Local Data
+# =========================
+data/
+models/

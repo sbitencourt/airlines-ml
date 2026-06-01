@@ -9,3 +9,6 @@ uvicorn[standard]
 psycopg2-binary
 streamlit
 pandas
+joblib
+scikit-learn
+xgboost

@@ -6,6 +6,8 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY src /app/src
+COPY models /app/models
+COPY data /app/data
 
 ENV PYTHONPATH=/app/src
 
