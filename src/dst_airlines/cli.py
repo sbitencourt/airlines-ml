@@ -80,40 +80,87 @@ def run_etl(source: str, endpoint: str, run_id: str | None = None) -> None:
         raise
 
 
+
+def run_predictions() -> None:
+    """
+    Execute the ML prediction batch.
+
+    This function keeps Airflow and local executions centralized through
+    the project CLI instead of calling pipeline modules directly.
+    """
+    log_event(
+        "INFO",
+        "cli",
+        "predictions_started",
+    )
+
+    try:
+        from dst_airlines.pipelines.run_predictions import main as run_predictions_main
+
+        run_predictions_main()
+
+        log_event(
+            "INFO",
+            "cli",
+            "predictions_finished",
+            status="success",
+        )
+
+    except Exception as e:
+        log_event(
+            "ERROR",
+            "cli",
+            "predictions_failed",
+            error=str(e),
+        )
+        raise
+
 def main() -> None:
     """
     Entry point for the CLI application.
     """
     parser = argparse.ArgumentParser(
-        description="CLI for running ETL pipelines in dst_airlines project.",
+        description="CLI for running dst_airlines project pipelines.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser(
         "run-etl",
         help="Run ETL pipeline for a given source and endpoint.",
     )
+
     run.add_argument(
         "--source",
         required=True,
         help="Data source name (e.g., aviationstack).",
     )
+
     run.add_argument(
         "--endpoint",
         required=True,
         help="Endpoint name (e.g., airports, flights, airlines).",
     )
+
     run.add_argument(
         "--run-id",
         required=False,
         help="Optional run identifier. If not provided, one will be generated.",
     )
 
+    sub.add_parser(
+        "run-predictions",
+        help="Run ML delay prediction batch.",
+    )
+
     args = parser.parse_args()
 
     if args.command == "run-etl":
         run_etl(args.source, args.endpoint, args.run_id)
+
+    elif args.command == "run-predictions":
+        run_predictions()
 
 
 if __name__ == "__main__":

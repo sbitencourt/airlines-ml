@@ -31,6 +31,21 @@ with DAG(
         ),
     )
 
+    run_predictions = BashOperator(
+        task_id="run_predictions",
+        bash_command=(
+            "python -m dst_airlines.cli run-predictions"
+        ),
+        append_env=True,
+        env={
+            "PYTHONPATH": "/opt/airflow/project/src",
+            "DELAY_MODEL_PATH": "/opt/airflow/project/models/delay_model.joblib",
+            "AIRPORTS_STATIC_CSV_PATH": "/opt/airflow/project/data/airports.csv",
+            "PREDICTION_LIMIT": "100",
+            "FLIGHT_PREDICTIONS_TABLE": "flight_predictions",
+        },
+    )
+
     build_flight_snapshot_insights = BashOperator(
         task_id="build_flight_snapshot_insights",
         bash_command=(
@@ -51,4 +66,8 @@ with DAG(
         ),
     )
 
-    run_flights_etl >> build_flight_snapshot_insights >> build_flight_aircraft_routes
+    run_flights_etl >> [
+        run_predictions,
+        build_flight_snapshot_insights,
+        build_flight_aircraft_routes,
+    ]

@@ -3,37 +3,48 @@ from dotenv import load_dotenv
 import os
 
 
-def encrypt_credentials():
+def encrypt_credentials() -> None:
     """
     Interactive utility to encrypt API credentials.
-    Run manually from command line.
+
+    Usage:
+        python tool_fernet.py
+
+    Requirements:
+        - ENCRYPTION_KEY must exist in .env
+        - Generate ENCRYPTION_KEY with:
+          python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     """
 
-    load_dotenv()  # ensure .env is loaded
+    load_dotenv(".env.docker")
 
-    key = os.getenv("ENCRYPTION_KEY")
+    encryption_key = os.getenv("ENCRYPTION_KEY")
 
-    if not key:
+    if not encryption_key:
         raise RuntimeError("Missing ENCRYPTION_KEY in .env")
 
     try:
-        cipher = Fernet(key.strip().encode("utf-8"))
-    except Exception:
+        cipher = Fernet(encryption_key.strip().encode("utf-8"))
+    except Exception as exc:
         raise RuntimeError(
             "ENCRYPTION_KEY is not a valid Fernet key.\n"
             "Generate one with:\n"
             "python -c \"from cryptography.fernet import Fernet; "
             "print(Fernet.generate_key().decode())\""
-        )
+        ) from exc
 
-    token = input("Token: ").strip()
+    plain_token = input("Token: ").strip()
 
-    encrypted_token = cipher.encrypt(token.encode("utf-8"))
+    if not plain_token:
+        raise RuntimeError("Token cannot be empty")
+
+    encrypted_token = cipher.encrypt(plain_token.encode("utf-8")).decode("utf-8")
 
     print("\nEncrypted Token:")
-    print(encrypted_token.decode())
+    print(encrypted_token)
 
-    print("\nCopy the value above into your .env as TOKEN_AVIONSTACK=")
+    print("\nCopy the value above into your .env as:")
+    print("TOKEN_AVIATIONSTACK=<encrypted_token>")
 
 
 if __name__ == "__main__":
