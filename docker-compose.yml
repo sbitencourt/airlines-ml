@@ -61,6 +61,7 @@ services:
     container_name: airflow-webserver
     depends_on:
       - postgres
+      - mongodb
     env_file:
     - .env.docker
     environment:
@@ -94,6 +95,7 @@ services:
     container_name: airflow-scheduler
     depends_on:
       - postgres
+      - mongodb
     env_file:
     - .env.docker
     environment:
