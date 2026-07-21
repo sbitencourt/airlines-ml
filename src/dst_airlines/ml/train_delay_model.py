@@ -437,9 +437,10 @@ def prepare_training_dataset(flights_df: pd.DataFrame) -> pd.DataFrame:
             f"{len(final_dataset)} to {MAX_TRAINING_ROWS} rows."
         )
 
+        # Abordagem segura para manter as colunas intactas no Pandas moderno
         final_dataset = (
             final_dataset
-            .groupby(TARGET_COLUMN, group_keys=False)
+            .groupby(TARGET_COLUMN, group_keys=True) # Mantém as chaves temporariamente
             .apply(
                 lambda group: group.sample(
                     n=min(
@@ -447,8 +448,10 @@ def prepare_training_dataset(flights_df: pd.DataFrame) -> pd.DataFrame:
                         max(1, int(MAX_TRAINING_ROWS * len(group) / len(final_dataset)))
                     ),
                     random_state=MODEL_RANDOM_STATE,
-                )
+                ),
+                include_groups=False # Evita duplicar ou bagunçar a coluna do groupby
             )
+            .reset_index(level=0) # Traz o TARGET_COLUMN de volta de forma limpa como coluna
             .sample(frac=1, random_state=MODEL_RANDOM_STATE)
             .reset_index(drop=True)
         )

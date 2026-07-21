@@ -39,6 +39,11 @@ services:
     depends_on:
       - mongodb
       - postgres
+    volumes:
+      - .:/app  # Garante que todo o seu projeto está dentro do container
+      # OU especificamente a pasta data:
+      - ./data:/app/data
+      - ./requirements.txt:/app/requirements.txt
 
   streamlit:
       build:

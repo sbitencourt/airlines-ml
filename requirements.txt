@@ -8,7 +8,7 @@ psycopg[binary]
 uvicorn[standard]
 psycopg2-binary
 streamlit
-pandas
+pandas==3.0.3
 joblib
 scikit-learn
 xgboost
