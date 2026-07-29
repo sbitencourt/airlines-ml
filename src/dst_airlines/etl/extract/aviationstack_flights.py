@@ -4,6 +4,9 @@ import urllib.request
 from urllib.parse import urlencode
 from typing import Any, Dict, List
 
+from dst_airlines.clients.aviationstack import AviationstackClient
+from dst_airlines.utils.get_tool_fernet import get_credentials
+
 from dst_airlines.extractors.aviationstack.flights import (
     build_flights_metrics,
     extract_in_air_flights,
@@ -25,9 +28,8 @@ def fetch_french_domestic_flights_payload() -> Dict[str, Any]:
     """
     combined_data: List[Dict[str, Any]] = []
     
-    # Retrieves the API Key directly from the environment
-    access_key = os.getenv("AVIATIONSTACK_ACCESS_KEY", "2bceda447a72d7e8f24804c3b0a2d4de")
-    base_url = "http://api.aviationstack.com/v1/flights"
+    # Utilizando o get_credentials para pegar a URL da API e a chave descriptografada com segurança
+    base_url, access_key, limit = get_credentials("API_URL_AVIATIONSTACK_FLIGHTS")
 
     for dep_iata, arr_iata in FRENCH_DOMESTIC_ROUTES:
         try:
@@ -36,7 +38,8 @@ def fetch_french_domestic_flights_payload() -> Dict[str, Any]:
                 "access_key": access_key,
                 "dep_iata": dep_iata,
                 "arr_iata": arr_iata,
-                "flight_status": "scheduled"
+                "flight_status": "scheduled",
+                "limit": limit  # Aproveitando o limit fornecido pelo get_credentials
             })
             url = f"{base_url}?{query_params}"
             

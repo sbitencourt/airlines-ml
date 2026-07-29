@@ -69,6 +69,11 @@ USE_ENRICHED_DISTANCE_IF_AVAILABLE = os.getenv(
     "false",
 ).strip().lower() in {"1", "true", "yes", "y"}
 
+FRENCH_AIRPORTS_IATA = {
+    "CDG", "ORY", "NCE", "MRS", "LYS", "TLS", "BOD", "NTE",
+    "SXB", "MPL", "BIA", "AJA", "BES", "RNS", "PUF", "LIL", "BIQ"
+}
+
 
 # ---------------------------------------------------------------------------
 # Generic helpers
@@ -312,17 +317,9 @@ def infer_departure_datetime(raw_flight: dict[str, Any]) -> pd.Timestamp | None:
 def load_airport_coordinates_from_static_csv(
     path: str = AIRPORTS_STATIC_CSV_PATH,
 ) -> dict[str, tuple[float, float]]:
-    """Load airport coordinates from a static global airports CSV.
-
-    Expected CSV columns include:
-        iata_code, icao_code, latitude_deg, longitude_deg
-
-    Output keys include both IATA and ICAO codes when available:
-        {
-            "CDG": (49.012798, 2.55),
-            "LFPG": (49.012798, 2.55),
-            ...
-        }
+    """
+    Loads French domestic airports from static CSV and maps all available codes
+    (IATA, ICAO, GPS, Ident) to their respective latitude_deg and longitude_deg.
     """
     if not os.path.exists(path):
         print(f"[airport_coordinates] Static airport CSV not found: {path}")
@@ -333,34 +330,31 @@ def load_airport_coordinates_from_static_csv(
     except UnicodeDecodeError:
         airports_df = pd.read_csv(path, encoding="latin1")
 
+    # Clean up column names
     airports_df.columns = [str(column).strip() for column in airports_df.columns]
 
-    required_columns = {"latitude_deg", "longitude_deg"}
-    missing_columns = required_columns - set(airports_df.columns)
-
-    if missing_columns:
-        raise ValueError(
-            f"Static airport CSV is missing columns: {sorted(missing_columns)}"
-        )
+    # Filter strictly by French airports and ensure IATA code is present
+    french_airports = airports_df[
+        (airports_df["iso_country"] == "FR") & (~airports_df["iata_code"].isna())
+    ].copy()
 
     coordinates: dict[str, tuple[float, float]] = {}
 
-    for _, row in airports_df.iterrows():
+    for _, row in french_airports.iterrows():
         latitude = safe_float(row.get("latitude_deg"))
         longitude = safe_float(row.get("longitude_deg"))
 
         if latitude is None or longitude is None:
             continue
 
+        # Map coordinates across all potential identifier codes present in the CSV
         for code_column in ("iata_code", "icao_code", "gps_code", "ident"):
             airport_code = normalize_text(row.get(code_column), uppercase=True)
+            if airport_code:
+                # Retains the first valid coordinate mapping for each airport code
+                coordinates.setdefault(airport_code, (latitude, longitude))
 
-            if not airport_code:
-                continue
-
-            # Keep the first valid coordinate found for each code.
-            coordinates.setdefault(airport_code, (latitude, longitude))
-
+    print(f"[airport_coordinates] Loaded {len(coordinates)} code mappings for French airports.")
     return coordinates
 
 
@@ -368,11 +362,15 @@ def get_airport_coordinate(
     airport_code: str | None,
     airport_coordinates: dict[str, tuple[float, float]],
 ) -> tuple[float | None, float | None]:
-    """Return airport latitude and longitude by IATA or ICAO code."""
+    """
+    Enriches the record by resolving airport latitude and longitude 
+    using the airport code (IATA or ICAO).
+    """
     if not airport_code:
         return None, None
 
-    coordinate = airport_coordinates.get(airport_code.upper())
+    normalized_code = airport_code.strip().upper()
+    coordinate = airport_coordinates.get(normalized_code)
 
     if not coordinate:
         return None, None
@@ -412,33 +410,20 @@ def infer_origin_coordinates(
     raw_flight: dict[str, Any],
     airport_coordinates: dict[str, tuple[float, float]],
 ) -> tuple[float | None, float | None]:
-    """Infer EUROCONTROL origin Latitude and Longitude.
-
-    Priority:
-        1. Departure IATA in static CSV.
-        2. Departure ICAO in static CSV.
-        3. Enriched departure latitude/longitude if present.
     """
-    for airport_code in (get_departure_iata(raw_flight), get_departure_icao(raw_flight)):
-        lat, lon = get_airport_coordinate(airport_code, airport_coordinates)
-        if lat is not None and lon is not None:
-            return lat, lon
+    Enriches raw API payload with latitude and longitude from static CSV.
+    """
+    # 1. Tenta buscar usando o IATA retornado pela API (ex: ORY)
+    dep_iata = get_departure_iata(raw_flight)
+    lat, lon = get_airport_coordinate(dep_iata, airport_coordinates)
+    if lat is not None and lon is not None:
+        return lat, lon
 
-    departure_lat = safe_float(
-        get_nested_value(raw_flight, "departure.latitude")
-        or get_nested_value(raw_flight, "departure.lat")
-        or raw_flight.get("departure_latitude")
-        or raw_flight.get("departure_lat")
-    )
-    departure_lon = safe_float(
-        get_nested_value(raw_flight, "departure.longitude")
-        or get_nested_value(raw_flight, "departure.lon")
-        or raw_flight.get("departure_longitude")
-        or raw_flight.get("departure_lon")
-    )
-
-    if departure_lat is not None and departure_lon is not None:
-        return departure_lat, departure_lon
+    # 2. Se falhar, tenta buscar usando o ICAO retornado pela API (ex: LFPO)
+    dep_icao = get_departure_icao(raw_flight)
+    lat, lon = get_airport_coordinate(dep_icao, airport_coordinates)
+    if lat is not None and lon is not None:
+        return lat, lon
 
     return None, None
 
@@ -516,6 +501,21 @@ def infer_distance_flown_nm(
 # Feature builder
 # ---------------------------------------------------------------------------
 
+def is_french_domestic_flight(raw_flight: dict[str, Any]) -> bool:
+    """Validate if both departure and arrival airports are French domestic airports."""
+    dep_iata = get_departure_iata(raw_flight)
+    arr_iata = get_arrival_iata(raw_flight)
+    dep_icao = get_departure_icao(raw_flight)
+    arr_icao = get_arrival_icao(raw_flight)
+
+    if dep_iata in FRENCH_AIRPORTS_IATA and arr_iata in FRENCH_AIRPORTS_IATA:
+        return True
+
+    if dep_icao and arr_icao and dep_icao.startswith("LF") and arr_icao.startswith("LF"):
+        return True
+
+    return False
+
 
 def build_eurocontrol_features_from_aviationstack(
     raw_flight: dict[str, Any],
@@ -568,6 +568,9 @@ def build_feature_index_mapping_from_coordinates(
     valid_indexes: list[int] = []
 
     for index, raw_flight in enumerate(raw_flights):
+        if not is_french_domestic_flight(raw_flight):
+            continue
+
         row = build_eurocontrol_features_from_aviationstack(
             raw_flight=raw_flight,
             airport_coordinates=airport_coordinates,

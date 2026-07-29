@@ -25,6 +25,7 @@ services:
       - "5432:5432"
     volumes:
       - ./sql/init:/docker-entrypoint-initdb.d
+      - ./data/postgre_data:/data/db
 
 
   fastapi:

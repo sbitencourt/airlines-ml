@@ -89,6 +89,7 @@ RF_N_ESTIMATORS = int(os.getenv("RF_N_ESTIMATORS", "50"))
 RF_MAX_DEPTH = int(os.getenv("RF_MAX_DEPTH", "12"))
 RF_N_JOBS = int(os.getenv("RF_N_JOBS", "1"))
 
+FRENCH_ICAO_PREFIX = "LF"
 
 FEATURE_COLUMNS = [
     "Latitude",
@@ -338,6 +339,22 @@ def build_distance_feature(processed_flights: pd.DataFrame) -> pd.Series:
 # Training dataset preparation
 # ---------------------------------------------------------------------------
 
+def filter_french_domestic_flights(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter EUROCONTROL dataset for French domestic flights (ADEP and ADES start with 'LF')."""
+    if "ADEP" not in df.columns or "ADES" not in df.columns:
+        print("[train_delay_model] Warning: ADEP/ADES missing, skipping France domestic filter.")
+        return df
+
+    adep = df["ADEP"].astype(str).str.strip().str.upper()
+    ades = df["ADES"].astype(str).str.strip().str.upper()
+
+    is_french_domestic = adep.str.startswith(FRENCH_ICAO_PREFIX) & ades.str.startswith(FRENCH_ICAO_PREFIX)
+    
+    filtered_df = df[is_french_domestic].copy()
+    print(f"[train_delay_model] Filtered French domestic flights: {len(filtered_df)} of {len(df)} total rows.")
+    
+    return filtered_df
+
 
 def validate_required_columns(flights_df: pd.DataFrame) -> None:
     """Validate input columns required by the corrected training logic."""
@@ -368,7 +385,8 @@ def prepare_training_dataset(flights_df: pd.DataFrame) -> pd.DataFrame:
     """Build the training dataset using features reproducible in production."""
     validate_required_columns(flights_df)
 
-    processed_flights = flights_df.copy()
+    # 1. Apply the French domestic filter before processing
+    processed_flights = filter_french_domestic_flights(flights_df)
 
     processed_flights["filed_dep"] = parse_eurocontrol_datetime(
         processed_flights["FILED OFF BLOCK TIME"]
@@ -437,10 +455,9 @@ def prepare_training_dataset(flights_df: pd.DataFrame) -> pd.DataFrame:
             f"{len(final_dataset)} to {MAX_TRAINING_ROWS} rows."
         )
 
-        # Abordagem segura para manter as colunas intactas no Pandas moderno
         final_dataset = (
             final_dataset
-            .groupby(TARGET_COLUMN, group_keys=True) # Mantém as chaves temporariamente
+            .groupby(TARGET_COLUMN, group_keys=True) 
             .apply(
                 lambda group: group.sample(
                     n=min(
@@ -449,9 +466,9 @@ def prepare_training_dataset(flights_df: pd.DataFrame) -> pd.DataFrame:
                     ),
                     random_state=MODEL_RANDOM_STATE,
                 ),
-                include_groups=False # Evita duplicar ou bagunçar a coluna do groupby
+                include_groups=False 
             )
-            .reset_index(level=0) # Traz o TARGET_COLUMN de volta de forma limpa como coluna
+            .reset_index(level=0) 
             .sample(frac=1, random_state=MODEL_RANDOM_STATE)
             .reset_index(drop=True)
         )
