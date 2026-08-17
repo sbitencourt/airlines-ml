@@ -165,3 +165,19 @@ services:
     depends_on:
       - prometheus
       - postgres
+
+  data-loader:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: dst_data_loader
+    env_file:
+      - .env.docker
+    environment:
+      - API_HOST=http://fastapi:8000
+    depends_on:
+      - fastapi
+    volumes:
+      - .:/app
+    # Updated path to match your folder structure
+    command: python /app/src/dst_airlines/etl/load/to_postgresql.py

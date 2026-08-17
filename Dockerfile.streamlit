@@ -11,4 +11,4 @@ ENV PYTHONPATH=/app/src
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "src/dst_airlines/streamlit_app/flight_analyzer.py", "--server.address=0.0.0.0", "--server.port=8501"]
+CMD ["streamlit", "run", "src/dst_airlines/streamlit_app/app.py", "--server.address=0.0.0.0", "--server.port=8501"]

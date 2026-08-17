@@ -12,6 +12,7 @@ from .db import (
     get_mongo_client,
     postgres_connection,
 )
+from .upload_routes import router as upload_router
 
 settings = get_settings()
 
@@ -24,6 +25,9 @@ app = FastAPI(
         "such as Dash, Streamlit, Swagger, or external clients."
     ),
 )
+
+# Register the new endpoints from db.py
+app.include_router(upload_router)
 
 
 @app.get("/health", tags=["health"])
@@ -145,7 +149,6 @@ def latest_flights(limit: int = Query(20, ge=1, le=200)) -> list[dict[str, Any]]
         )
 
 
-
 def _get_business_table_columns() -> set[str]:
     """Return the available columns from the configured SQL business table/view."""
     query = sql.SQL("SELECT * FROM {table} LIMIT 0").format(
@@ -167,19 +170,7 @@ def search_flights(
     ),
     limit: int = Query(10, ge=1, le=50),
 ) -> list[dict[str, Any]]:
-    """Search flights in the SQL serving table/view by flight identifier.
-
-    The endpoint checks which identifier columns exist in SQL_BUSINESS_TABLE and
-    searches only those columns. This avoids hardcoding one specific schema.
-
-    Recommended SQL column names, if available:
-    - flight_iata
-    - flight_icao
-    - flight_number
-    - iata
-    - icao
-    - number
-    """
+    """Search flights in the SQL serving table/view by flight identifier."""
     search_value = f"%{flight_iata.strip()}%"
 
     candidate_columns = [
@@ -339,3 +330,49 @@ def latest_raw_airports(limit: int = Query(10, ge=1, le=100)) -> list[dict[str, 
         return _mongo_find(settings.mongodb_collection_airports, limit)
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail=f"Unable to read MongoDB airports: {exc}")
+
+
+@app.get("/analytics/historical", tags=["analytics"])
+def get_historical_analytics(
+    operator: str = Query(None, description="Filter by AC Operator"),
+    limit: int = Query(0, description="0 loads all French domestic flights, or specify a limit")
+) -> list[dict[str, Any]]:
+    """Fetch EUROCONTROL historical dataset for BI and Analytics."""
+    
+    # O símbolo '%' foi duplicado ('%%') para que o psycopg2 não o confunda com um parâmetro '%s'
+    base_query = """
+        SELECT 
+            "ECTRL ID" AS flight_id,
+            "AC Operator" AS operator,
+            "AC Type" AS aircraft_type,
+            "ADEP" AS origin,
+            "ADES" AS destination,
+            "FILED OFF BLOCK TIME" AS filed_dep_time,
+            "ACTUAL OFF BLOCK TIME" AS actual_dep_time,
+            CAST(NULLIF("Actual Distance Flown (nm)", '') AS FLOAT) AS distance_nm,
+            CAST(NULLIF("departure_delay_min", '') AS FLOAT) AS delay_minutes,
+            CAST(NULLIF("departure_delay_min", '') AS FLOAT) > 15 AS is_delayed
+        FROM eurocontrol_historical_data
+        WHERE "FILED OFF BLOCK TIME" IS NOT NULL 
+          AND "FILED OFF BLOCK TIME" != ''
+          AND "ADEP" LIKE 'LF%%' 
+          AND "ADES" LIKE 'LF%%'
+    """
+    
+    params = []
+    
+    if operator:
+        base_query += ' AND "AC Operator" = %s'
+        params.append(operator)
+        
+    if limit > 0:
+        base_query += " LIMIT %s"
+        params.append(limit)
+    
+    try:
+        return fetch_all(base_query, params)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to read historical analytics: {exc}",
+        )

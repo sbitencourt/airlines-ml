@@ -12,3 +12,4 @@ pandas==3.0.3
 joblib
 scikit-learn
 xgboost
+plotly
